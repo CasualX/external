@@ -92,6 +92,14 @@ impl<T: ?Sized> TypePtr32<T> {
 		self.0 == 0
 	}
 }
+impl<T> TypePtr32<[T]> {
+	pub fn decay(self) -> TypePtr32<T> {
+		TypePtr32(self.0, PhantomData)
+	}
+	pub fn at(self, index: usize) -> TypePtr32<T> {
+		TypePtr32(self.0 + mem::size_of::<T>() as u32 * index as u32, PhantomData)
+	}
+}
 impl<T> ops::Sub for TypePtr32<T> {
 	type Output = i32;
 	fn sub(self, rhs: TypePtr32<T>) -> i32 {

@@ -111,6 +111,14 @@ impl<T: ?Sized> TypePtr<T> {
 		self.0 == 0
 	}
 }
+impl<T> TypePtr<[T]> {
+	pub fn decay(self) -> TypePtr<T> {
+		TypePtr(self.0, PhantomData)
+	}
+	pub fn at(self, index: usize) -> TypePtr<T> {
+		TypePtr(self.0 + mem::size_of::<T>() * index, PhantomData)
+	}
+}
 impl<T> ops::Sub for TypePtr<T> {
 	type Output = i64;
 	fn sub(self, rhs: TypePtr<T>) -> i64 {
