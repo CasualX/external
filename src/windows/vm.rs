@@ -135,9 +135,10 @@ pub trait VirtualMemory {
 	}
 	#[inline]
 	fn vm_write_range<T: Pod>(&self, ptr: TypePtr<T>, val: &T, range: Range<usize>) -> Result<()> where Self: Sized {
+		let ptr: RawPtr = ptr.into();
 		let ptr = ptr + range.start;
 		let val = &val.as_bytes()[range];
-		self.vm_write_bytes(ptr.into(), val)
+		self.vm_write_bytes(ptr, val)
 	}
 	#[inline]
 	fn vm_commit(&self, ptr: RawPtr, len: usize, protect: Protect) -> Result<RawPtr> where Self: Sized {
