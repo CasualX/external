@@ -7,6 +7,7 @@ use ntdll::*;
 use FromInner;
 use thread::ThreadId;
 use process::ProcessId;
+use ptr::RawPtr;
 
 //----------------------------------------------------------------
 
@@ -110,8 +111,8 @@ impl fmt::Debug for ProcessInformation {
 #[repr(C)]
 pub struct ThreadInformation(SYSTEM_THREAD_INFORMATION);
 impl ThreadInformation {
-	pub fn start_address(&self) -> usize {
-		self.0.StartAddress as usize
+	pub fn start_address(&self) -> RawPtr {
+		RawPtr::from(self.0.StartAddress as usize)
 	}
 	pub fn process_id(&self) -> ProcessId {
 		unsafe {
@@ -135,7 +136,7 @@ impl fmt::Debug for ThreadInformation {
 		f.debug_struct("ThreadInformation")
 			.field("thread_id", &self.thread_id())
 			.field("process_id", &self.process_id())
-			.field("start_address", &self.0.StartAddress)
+			.field("start_address", &self.start_address())
 			.field("thread_state", &self.thread_state())
 			.field("wait_reason", &self.wait_reason())
 			.finish()
