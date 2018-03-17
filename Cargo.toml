@@ -2,7 +2,11 @@
 name = "external"
 version = "0.1.0"
 
+[features]
+ntapi = ["ntdll"]
+
 [dependencies]
+ntdll = { path = "../ntdll", optional = true }
 winapi = { version = "0.3", features = [
 	"winuser", "processthreadsapi", "handleapi", "synchapi", "winbase", "tlhelp32",
 	"consoleapi", "errhandlingapi", "wingdi", "memoryapi", "winerror"

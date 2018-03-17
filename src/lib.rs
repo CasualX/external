@@ -4,6 +4,9 @@ Externals.
 
 extern crate winapi;
 
+#[cfg(all(windows, feature = "ntapi"))]
+extern crate ntdll;
+
 mod util;
 #[macro_use]
 mod inner;

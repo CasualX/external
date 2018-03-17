@@ -20,6 +20,7 @@ pub mod hook;
 pub mod input;
 pub mod control;
 pub mod snap;
+pub mod system;
 
 pub type Result<T> = ::std::result::Result<T, error::ErrorCode>;
 
@@ -37,5 +38,6 @@ pub mod flat {
 	pub use super::hook::*;
 	pub use super::input::*;
 	pub use super::control::*;
+	pub use super::system::*;
 	pub use ::{AsInner, AsInnerMut, FromInner, IntoInner};
 }
