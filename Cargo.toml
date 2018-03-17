@@ -3,9 +3,7 @@ name = "external"
 version = "0.1.0"
 
 [dependencies]
-winapi = "0.2"
-kernel32-sys = "0.2"
-advapi32-sys = "0.2"
-user32-sys = "0.2"
-gdi32-sys = "0.2"
-time = "0.1"
+winapi = { version = "0.3", features = [
+	"winuser", "processthreadsapi", "handleapi", "synchapi", "winbase", "tlhelp32",
+	"consoleapi", "errhandlingapi", "wingdi", "memoryapi", "winerror"
+] }

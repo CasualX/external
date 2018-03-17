@@ -3,8 +3,14 @@
 
 use std::{mem, fmt};
 
-use kernel32::{CloseHandle, GetCurrentThread, OpenThread, GetThreadId, GetProcessIdOfThread, GetExitCodeThread, WaitForSingleObject};
-use winapi::{HANDLE, DWORD, FALSE, TRUE, WAIT_FAILED};
+use winapi::um::handleapi::{CloseHandle, INVALID_HANDLE_VALUE};
+use winapi::um::synchapi::{WaitForSingleObject};
+use winapi::um::processthreadsapi::{GetCurrentThread, OpenThread, GetThreadId, GetProcessIdOfThread, GetExitCodeThread};
+use winapi::um::winbase::{WAIT_FAILED};
+use winapi::um::winnt::{DELETE, READ_CONTROL, SYNCHRONIZE, WRITE_DAC, WRITE_OWNER};
+use winapi::um::tlhelp32::{CreateToolhelp32Snapshot, Thread32First, Thread32Next, THREADENTRY32, TH32CS_SNAPTHREAD};
+use winapi::shared::ntdef::{HANDLE, LONG};
+use winapi::shared::minwindef::{DWORD, FALSE, TRUE};
 
 use process::ProcessId;
 use error::ErrorCode;
@@ -19,7 +25,6 @@ impl_inner!(ThreadId: DWORD);
 
 //----------------------------------------------------------------
 
-use ::winapi::{DELETE, READ_CONTROL, SYNCHRONIZE, WRITE_DAC, WRITE_OWNER};
 //use ::winapi::{THREAD_ALL_ACCESS, THREAD_DIRECT_IMPERSONATION, THREAD_GET_CONTEXT, THREAD_IMPERSONATE, THREAD_QUERY_INFORMATION, THREAD_QUERY_LIMITED_INFORMATION,
 //	THREAD_SET_CONTEXT, THREAD_SET_INFORMATION, THREAD_SET_LIMITED_INFORMATION, THREAD_SET_THREAD_TOKEN, THREAD_SUSPEND_RESUME, THREAD_TERMINATE};
 
@@ -171,8 +176,6 @@ impl Drop for Thread {
 
 //----------------------------------------------------------------
 
-use ::kernel32::{CreateToolhelp32Snapshot, Thread32First, Thread32Next};
-use ::winapi::{LONG, THREADENTRY32, INVALID_HANDLE_VALUE, TH32CS_SNAPTHREAD};
 
 /// See [`threads`](fn.threads.html).
 #[derive(Debug)]

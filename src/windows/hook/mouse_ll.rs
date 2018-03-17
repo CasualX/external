@@ -4,8 +4,9 @@ Low level mouse hook details.
 
 use std::{ptr, fmt};
 
-use user32::{SetWindowsHookExW};
-use winapi::{UINT, WPARAM, WH_MOUSE_LL, MSLLHOOKSTRUCT};
+use winapi::um::winuser::{SetWindowsHookExW, WH_MOUSE_LL, MSLLHOOKSTRUCT};
+use winapi::um::winuser::{WM_MOUSEMOVE, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_XBUTTONDOWN, WM_XBUTTONUP, WM_MOUSEWHEEL, WM_MOUSEHWHEEL, XBUTTON1, XBUTTON2};
+use winapi::shared::minwindef::{UINT, WPARAM};
 
 use error::ErrorCode;
 use input::{vk, VirtualKey};
@@ -65,7 +66,6 @@ impl MouseLL {
 		self.info_mut().pt.y = y;
 	}
 	pub fn mouse_data(&self) -> MouseData {
-		use ::winapi::{WM_MOUSEMOVE, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_XBUTTONDOWN, WM_XBUTTONUP, WM_MOUSEWHEEL, WM_MOUSEHWHEEL, XBUTTON1, XBUTTON2};
 		match self.0.wParam as UINT {
 			WM_MOUSEMOVE => MouseData::Move,
 			WM_LBUTTONDOWN => MouseData::ButtonDown(vk::LBUTTON),
@@ -73,7 +73,7 @@ impl MouseLL {
 			WM_RBUTTONDOWN => MouseData::ButtonDown(vk::RBUTTON),
 			WM_RBUTTONUP => MouseData::ButtonUp(vk::RBUTTON),
 			message @ WM_XBUTTONDOWN ... WM_XBUTTONUP => {
-				let vk = match self.info().mouseData >> 16 {
+				let vk = match (self.info().mouseData >> 16) as u16 {
 					XBUTTON1 => vk::XBUTTON1,
 					XBUTTON2 => vk::XBUTTON2,
 					button => panic!("unknown xbutton: {}", button),

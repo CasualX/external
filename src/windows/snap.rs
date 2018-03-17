@@ -4,9 +4,12 @@ Screenshots using GDI.
 
 use std::{mem, ptr, io};
 
-use user32::{GetDC, ReleaseDC};
-use gdi32::{DeleteDC, CreateCompatibleDC, CreateCompatibleBitmap, SelectObject, DeleteObject, BitBlt, GetDIBits, GetObjectW};
-use winapi::{c_void, DWORD, HDC, HBITMAP, BITMAP, BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS, SRCCOPY};
+use winapi::um::winuser::{GetDC, ReleaseDC};
+use winapi::um::wingdi::{DeleteDC, CreateCompatibleDC, CreateCompatibleBitmap, SelectObject, DeleteObject, BitBlt, GetDIBits, GetObjectW};
+use winapi::um::wingdi::{BITMAP, BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS, SRCCOPY};
+use winapi::ctypes::{c_void};
+use winapi::shared::windef::{HDC, HBITMAP};
+use winapi::shared::minwindef::{DWORD};
 
 use window::Window;
 use error::ErrorCode;
@@ -142,7 +145,7 @@ impl Capture {
 			// FIXME! `GetDIBits` writes a color table of 3 values: RED, GREEN, BLUE. Why?
 			//        Temporarily fixed by just allocating some extra fields which are ignored...
 			let mut bmidata: [u32; 24] = [0xDDDDDDDD; 24];
-			let mut bmi: &mut BITMAPINFO = mem::transmute(&mut bmidata);
+			let bmi: &mut BITMAPINFO = mem::transmute(&mut bmidata);
 			// Query bitmap info header
 			bmi.bmiHeader.biSize = mem::size_of::<BITMAPINFOHEADER>() as DWORD;
 			bmi.bmiHeader.biBitCount = 0;
@@ -214,7 +217,7 @@ impl Image {
 		};
 		let num = width * height;
 		let mut pixels = Vec::with_capacity(num);
-		let mut pxtr = pixels.as_mut_ptr();
+		let mut pxtr: *mut Color = pixels.as_mut_ptr();
 		let pxend = unsafe { pxtr.offset(num as isize) };
 		while pxtr != pxend {
 			let mut read = 0;

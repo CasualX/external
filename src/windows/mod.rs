@@ -13,7 +13,7 @@ pub mod process;
 pub mod vm;
 pub mod module;
 pub mod thread;
-pub mod thread_token;
+// pub mod thread_token;
 pub mod window;
 pub mod wndclass;
 pub mod hook;
@@ -31,7 +31,7 @@ pub mod flat {
 	pub use super::vm::*;
 	pub use super::module::*;
 	pub use super::thread::*;
-	pub use super::thread_token::*;
+	// pub use super::thread_token::*;
 	pub use super::window::*;
 	pub use super::wndclass::*;
 	pub use super::hook::*;

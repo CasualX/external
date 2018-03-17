@@ -6,8 +6,10 @@ use std::{mem, fmt};
 use std::ffi::{OsString};
 use std::os::windows::ffi::{OsStringExt};
 
-use kernel32::{CloseHandle, CreateToolhelp32Snapshot, Module32FirstW, Module32NextW};
-use winapi::{HANDLE, DWORD, FALSE, HMODULE, MODULEENTRY32W, INVALID_HANDLE_VALUE, TH32CS_SNAPMODULE, TH32CS_SNAPMODULE32};
+use winapi::um::handleapi::{CloseHandle, INVALID_HANDLE_VALUE};
+use winapi::um::tlhelp32::{CreateToolhelp32Snapshot, Module32FirstW, Module32NextW, MODULEENTRY32W, TH32CS_SNAPMODULE, TH32CS_SNAPMODULE32};
+use winapi::shared::ntdef::{HANDLE};
+use winapi::shared::minwindef::{DWORD, FALSE, HMODULE};
 
 use process::ProcessId;
 use error::ErrorCode;

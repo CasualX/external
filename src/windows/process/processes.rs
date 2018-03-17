@@ -2,8 +2,10 @@ use std::{fmt, mem};
 use std::ffi::{OsString};
 use std::os::windows::ffi::{OsStringExt};
 
-use kernel32::{CloseHandle, CreateToolhelp32Snapshot, Process32FirstW, Process32NextW};
-use winapi::{FALSE, HANDLE, DWORD, LONG, INVALID_HANDLE_VALUE, TH32CS_SNAPPROCESS, PROCESSENTRY32W};
+use winapi::um::handleapi::{CloseHandle, INVALID_HANDLE_VALUE};
+use winapi::um::tlhelp32::{CreateToolhelp32Snapshot, Process32FirstW, Process32NextW, TH32CS_SNAPPROCESS, PROCESSENTRY32W};
+use winapi::shared::ntdef::{HANDLE, LONG};
+use winapi::shared::minwindef::{FALSE, DWORD};
 
 use util::from_wchar_buf;
 use error::ErrorCode;

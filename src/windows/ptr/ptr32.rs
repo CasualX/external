@@ -169,7 +169,7 @@ mod tests {
 		let c = a - 0x20;
 		assert_eq!(mem::size_of_val(&a), 4);
 		assert_eq!(b - a, 0x20);
-		assert_eq!({ let ptr: u32 = c.into(); ptr }, 0x0FE0);
+		assert_eq!({ let ptr: usize = c.into(); ptr }, 0x0FE0);
 		assert_eq!(format!("{}", a), "0x00001000");
 		assert_eq!({ let ptr: TypePtr32<i32> = b.into(); ptr }, TypePtr32::<i32>::from(0x1020));
 	}
@@ -181,7 +181,7 @@ mod tests {
 		let c = a - 0x40;
 		assert_eq!(mem::size_of_val(&a), 4);
 		assert_eq!(c - a, -0x40);
-		assert_eq!({ let ptr: u32 = b.into(); ptr }, 0x2100);
+		assert_eq!({ let ptr: usize = b.into(); ptr }, 0x2100);
 		assert_eq!(format!("{}", a), "0x00002000");
 		assert_eq!({ let ptr: RawPtr32 = c.into(); ptr }, RawPtr32::from(0x1F00));
 	}

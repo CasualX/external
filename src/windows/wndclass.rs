@@ -3,12 +3,14 @@
 
 use std::{ptr, mem, panic};
 
-use winapi::{UINT, WPARAM, LPARAM, HINSTANCE, LRESULT, LPCWSTR};
-use winapi::{HWND, WNDCLASSEXW, MSG, HICON, HCURSOR, HBRUSH};
-use winapi::{TRUE, COLOR_WINDOWFRAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CS_VREDRAW, CS_HREDRAW};
-use winapi::{WM_QUIT, WM_NCCREATE, PM_REMOVE};
-use user32::{RegisterClassExW, CreateWindowExW, DefWindowProcW};
-use user32::{GetMessageW, PeekMessageW, TranslateMessage, DispatchMessageW};
+use winapi::um::winuser::{RegisterClassExW, CreateWindowExW, DefWindowProcW};
+use winapi::um::winuser::{GetMessageW, PeekMessageW, TranslateMessage, DispatchMessageW};
+use winapi::um::winuser::{WNDCLASSEXW, MSG};
+use winapi::um::winuser::{COLOR_WINDOWFRAME, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CS_VREDRAW, CS_HREDRAW, WM_QUIT, WM_NCCREATE, PM_REMOVE};
+use winapi::um::synchapi::{Sleep};
+use winapi::shared::ntdef::{LPCWSTR};
+use winapi::shared::windef::{HWND, HICON, HCURSOR, HBRUSH};
+use winapi::shared::minwindef::{UINT, WPARAM, LPARAM, HINSTANCE, LRESULT, TRUE};
 
 use window::Window;
 use error::ErrorCode;
@@ -133,6 +135,6 @@ pub fn pump_thread() {
 
 pub fn sleep(ms: u32) {
 	unsafe {
-		::kernel32::Sleep(ms);
+		Sleep(ms);
 	}
 }

@@ -4,8 +4,8 @@ Error codes.
 
 use std::{fmt, error};
 
-use kernel32::GetLastError;
-use winapi::DWORD;
+use winapi::um::errhandlingapi::{GetLastError};
+use winapi::shared::minwindef::{DWORD};
 
 /// Windows error code.
 ///

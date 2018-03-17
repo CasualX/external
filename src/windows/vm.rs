@@ -5,11 +5,14 @@ Virtual memory interaction with a process.
 use std::{ptr, mem};
 use std::ops::Range;
 
-use kernel32::{ReadProcessMemory, WriteProcessMemory, VirtualAllocEx, VirtualFreeEx, VirtualQueryEx};
-use winapi::{FALSE, BOOL, DWORD, SIZE_T, LPVOID, LPCVOID, HANDLE, MEMORY_BASIC_INFORMATION, ERROR_PARTIAL_COPY};
-use winapi::{PAGE_EXECUTE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY, PAGE_NOACCESS,
-	PAGE_READONLY, PAGE_READWRITE, PAGE_WRITECOPY, PAGE_GUARD};
-use winapi::{MEM_COMMIT, MEM_RESERVE, MEM_RESET, MEM_RESET_UNDO, MEM_DECOMMIT, MEM_RELEASE};
+use winapi::um::memoryapi::{ReadProcessMemory, WriteProcessMemory, VirtualAllocEx, VirtualFreeEx, VirtualQueryEx};
+use winapi::um::winnt::{MEMORY_BASIC_INFORMATION};
+use winapi::um::winnt::{PAGE_EXECUTE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY, PAGE_NOACCESS, PAGE_READONLY, PAGE_READWRITE, PAGE_WRITECOPY, PAGE_GUARD};
+use winapi::um::winnt::{MEM_COMMIT, MEM_RESERVE, MEM_RESET, MEM_RESET_UNDO, MEM_DECOMMIT, MEM_RELEASE};
+use winapi::shared::winerror::{ERROR_PARTIAL_COPY};
+use winapi::shared::ntdef::{HANDLE};
+use winapi::shared::basetsd::{SIZE_T};
+use winapi::shared::minwindef::{FALSE, BOOL, DWORD, LPVOID, LPCVOID};
 
 use process::Process;
 use error::ErrorCode;

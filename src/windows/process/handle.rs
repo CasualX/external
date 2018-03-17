@@ -3,11 +3,13 @@ use std::{mem, ptr};
 use std::ffi::OsString;
 use std::os::windows::ffi::{OsStringExt};
 
-use kernel32::{
-	OpenProcess, DuplicateHandle, CloseHandle, GetCurrentProcess, GetProcessId,
-	GetExitCodeProcess, WaitForSingleObject, CreateRemoteThread, QueryFullProcessImageNameW
-};
-use winapi::{HANDLE, WCHAR, LPVOID, DWORD, TRUE, FALSE, WAIT_FAILED, DUPLICATE_SAME_ACCESS};
+use winapi::um::processthreadsapi::{OpenProcess, GetCurrentProcess, GetProcessId, GetExitCodeProcess, CreateRemoteThread};
+use winapi::um::winbase::{QueryFullProcessImageNameW, WAIT_FAILED};
+use winapi::um::synchapi::{WaitForSingleObject};
+use winapi::um::handleapi::{DuplicateHandle, CloseHandle};
+use winapi::um::winnt::{DUPLICATE_SAME_ACCESS};
+use winapi::shared::ntdef::{HANDLE, WCHAR};
+use winapi::shared::minwindef::{LPVOID, DWORD, TRUE, FALSE};
 
 use module::{EnumModules, modules};
 use thread::Thread;

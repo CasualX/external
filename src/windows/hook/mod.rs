@@ -67,8 +67,10 @@ Register the hook by simply calling the defined function and unwrapping it.
 
 use std::{ptr, panic};
 
-use user32::{UnhookWindowsHookEx, CallNextHookEx};
-use winapi::{c_int, WPARAM, LPARAM, LRESULT, HHOOK};
+use winapi::um::winuser::{UnhookWindowsHookEx, CallNextHookEx};
+use winapi::shared::windef::{HHOOK};
+use winapi::shared::minwindef::{LPARAM, LRESULT, WPARAM};
+use winapi::ctypes::{c_int};
 
 /// Raw context for hook callbacks.
 ///

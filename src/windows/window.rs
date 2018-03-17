@@ -6,12 +6,11 @@ use std::{mem, ptr};
 use std::ffi::{OsString, OsStr};
 use std::os::windows::ffi::{OsStringExt, OsStrExt};
 
-use winapi::{GWLP_USERDATA};
-use user32::{IsWindow, ShowWindow, UpdateWindow, GetWindowTextW,
-	GetWindowThreadProcessId,
-	RealGetWindowClassW, EnumWindows, FindWindowW, GetForegroundWindow,
-	GetClientRect, ClientToScreen, ScreenToClient, GetDesktopWindow};
-use winapi::{BOOL, FALSE, TRUE, DWORD, LONG_PTR, WCHAR, HWND, LPARAM, POINT};
+use winapi::um::winuser::*;
+use winapi::shared::basetsd::{LONG_PTR};
+use winapi::shared::ntdef::{WCHAR};
+use winapi::shared::windef::{HWND, POINT};
+use winapi::shared::minwindef::{BOOL, FALSE, TRUE, DWORD, LPARAM};
 
 use process::ProcessId;
 use thread::ThreadId;
@@ -84,25 +83,25 @@ impl Window {
 	#[cfg(target_pointer_width = "64")]
 	pub fn user_data(self) -> usize {
 		unsafe {
-			::user32::GetWindowLongPtrW(self.into_inner(), GWLP_USERDATA) as usize
+			GetWindowLongPtrW(self.into_inner(), GWLP_USERDATA) as usize
 		}
 	}
 	#[cfg(target_pointer_width = "64")]
 	pub fn set_user_data<T>(self, data: usize) {
 		unsafe {
-			::user32::SetWindowLongPtrW(self.into_inner(), GWLP_USERDATA, data as LONG_PTR);
+			SetWindowLongPtrW(self.into_inner(), GWLP_USERDATA, data as LONG_PTR);
 		}
 	}
 	#[cfg(target_pointer_width = "32")]
 	pub fn user_data(self) -> usize {
 		unsafe {
-			::user32::GetWindowLongW(self.into_inner(), GWLP_USERDATA) as usize
+			GetWindowLongW(self.into_inner(), GWLP_USERDATA) as usize
 		}
 	}
 	#[cfg(target_pointer_width = "32")]
 	pub fn set_user_data<T>(self, data: usize) {
 		unsafe {
-			::user32::SetWindowLongW(self.into_inner(), GWLP_USERDATA, data as LONG_PTR);
+			SetWindowLongW(self.into_inner(), GWLP_USERDATA, data as LONG_PTR);
 		}
 	}
 	/// Returns the window title of this window.
@@ -176,7 +175,7 @@ struct EnumWindowsContext<'a> {
 }
 #[allow(non_snake_case)]
 unsafe extern "system" fn thunk(hwnd: HWND, lParam: LPARAM) -> BOOL {
-	let mut context = &mut *(lParam as *mut EnumWindowsContext);
+	let context = &mut *(lParam as *mut EnumWindowsContext);
 	// We are called from an FFI context so if this panics 'undefined behaviour' happens.
 	// To solve this it should be wrapped in a `panic::catch_unwind` to catch panics but due to reasons I can't get this to work...
 	// So fuck it! >.>

@@ -4,11 +4,10 @@ Track the total mouse distance moved.
 
 #[macro_use]
 extern crate external;
-extern crate time;
 
 use external::wndclass::{pump_once};
 
-use ::std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{self, Duration, SystemTime, UNIX_EPOCH};
 
 // Uninitialized mouse coordinate value.
 const PT_UNINIT: i32 = 0x80000000u32 as i32;

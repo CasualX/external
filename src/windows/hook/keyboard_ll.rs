@@ -4,13 +4,15 @@ Low level keyboard hook details.
 
 use std::{ptr, fmt};
 
-use user32::{SetWindowsHookExW};
-use winapi::{UINT, WPARAM, WH_KEYBOARD_LL, KBDLLHOOKSTRUCT};
+use winapi::um::winuser::{SetWindowsHookExW, WH_KEYBOARD_LL, KBDLLHOOKSTRUCT};
+use winapi::shared::minwindef::{UINT, WPARAM};
 
 use error::ErrorCode;
 use input::VirtualKey;
 
 use super::{Context, Invoke, Hook};
+
+//----------------------------------------------------------------
 
 /// Low level keyboard hook callback context.
 ///
