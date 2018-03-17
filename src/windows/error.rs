@@ -28,9 +28,7 @@ impl fmt::Display for ErrorCode {
 }
 impl fmt::Debug for ErrorCode {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		f.debug_tuple("ErrorCode")
-			.field(&self.0)
-			.finish()
+		write!(f, "ErrorCode({:#X})", self.0)
 	}
 }
 impl error::Error for ErrorCode {
