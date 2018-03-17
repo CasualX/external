@@ -1,16 +1,12 @@
-/*!
-Window handles.
-*/
-
 use std::{mem, ptr};
-use std::ffi::{OsString, OsStr};
-use std::os::windows::ffi::{OsStringExt, OsStrExt};
+use std::ffi::OsString;
+use std::os::windows::ffi::OsStringExt;
 
 use winapi::um::winuser::*;
 use winapi::shared::basetsd::{LONG_PTR};
 use winapi::shared::ntdef::{WCHAR};
 use winapi::shared::windef::{HWND, POINT};
-use winapi::shared::minwindef::{BOOL, FALSE, TRUE, DWORD, LPARAM};
+use winapi::shared::minwindef::{FALSE, DWORD};
 
 use process::ProcessId;
 use thread::ThreadId;
@@ -21,7 +17,7 @@ use {Result, FromInner, IntoInner};
 ///
 /// This is slightly special because `HWND` has no concept of ownership or anything so this abstraction doesn't try to create one.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct Window(HWND);
+pub struct Window(pub(super) HWND);
 impl_inner!(Window: HWND);
 impl Window {
 	/// Get the foreground window.
@@ -165,63 +161,5 @@ impl Window {
 				Ok((pt.x, pt.y))
 			}
 		}
-	}
-}
-
-//----------------------------------------------------------------
-
-struct EnumWindowsContext<'a> {
-	callback: &'a mut FnMut(Window) -> bool,
-}
-#[allow(non_snake_case)]
-unsafe extern "system" fn thunk(hwnd: HWND, lParam: LPARAM) -> BOOL {
-	let context = &mut *(lParam as *mut EnumWindowsContext);
-	// We are called from an FFI context so if this panics 'undefined behaviour' happens.
-	// To solve this it should be wrapped in a `panic::catch_unwind` to catch panics but due to reasons I can't get this to work...
-	// So fuck it! >.>
-	if (context.callback)(Window(hwnd)) { TRUE }
-	else { FALSE }
-}
-
-/// Enumerate all top-level windows.
-///
-/// See [EnumWindows function](https://msdn.microsoft.com/en-us/library/windows/desktop/ms633497.aspx) for more information.
-pub fn windows<F>(mut f: F) -> bool where F: FnMut(Window) -> bool {
-	let mut context = EnumWindowsContext {
-		callback: &mut f,
-	};
-	unsafe {
-		EnumWindows(Some(thunk), &mut context as *mut _ as LPARAM) != FALSE
-	}
-}
-
-/// Find a window by class name or window title.
-///
-/// See [FindWindow function](https://msdn.microsoft.com/en-us/library/windows/desktop/ms633499.aspx) for more information.
-pub fn find<T: AsRef<OsStr>>(class: Option<&T>, title: Option<&T>) -> Result<Window> {
-	_find(class.map(|class| class.as_ref()), title.map(|title| title.as_ref()))
-}
-fn _find(class: Option<&OsStr>, title: Option<&OsStr>) -> Result<Window> {
-	// These memory allocations make me cry...
-	let class = class.map(|class| {
-		let mut vec = class.encode_wide().collect::<Vec<u16>>();
-		vec.push(0);
-		vec
-	});
-	let title = title.map(|title| {
-		let mut vec = title.encode_wide().collect::<Vec<u16>>();
-		vec.push(0);
-		vec
-	});
-	let wnd = unsafe {
-		FindWindowW(
-			class.map_or(ptr::null(), |class| class.as_ptr()),
-			title.map_or(ptr::null(), |title| title.as_ptr()))
-	};
-	if wnd.is_null() {
-		Err(ErrorCode::last())
-	}
-	else {
-		Ok(Window(wnd))
 	}
 }
