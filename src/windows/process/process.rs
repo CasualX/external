@@ -10,13 +10,12 @@ use winapi::um::winnt::{DUPLICATE_SAME_ACCESS};
 use winapi::shared::ntdef::{HANDLE, WCHAR};
 use winapi::shared::minwindef::{LPVOID, DWORD, TRUE, FALSE};
 
+use process::{ProcessId, ProcessRights};
 use module::{EnumModules, modules};
 use thread::Thread;
 use ptr::RawPtr;
 use error::ErrorCode;
 use {Result, IntoInner, FromInner};
-
-use super::{ProcessId, ProcessRights};
 
 /// Process handle.
 #[derive(Debug)]

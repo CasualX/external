@@ -1,6 +1,8 @@
 /*!
 */
 
+#![allow(unused)]
+
 #[inline]
 pub fn from_wchar_buf(buf: &[u16]) -> &[u16] {
 	let len = buf.iter()
