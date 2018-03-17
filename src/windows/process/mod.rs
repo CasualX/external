@@ -2,19 +2,12 @@
 Process handles.
 */
 
-mod processes;
-mod rights;
-mod handle;
+mod process_id;
+mod process_rights;
+mod process;
+mod process_enum;
 
-pub use self::processes::*;
-pub use self::rights::ProcessRights;
-pub use self::handle::Process;
-
-//----------------------------------------------------------------
-
-use winapi::shared::minwindef::DWORD;
-
-/// Wraps a process identifier.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct ProcessId(DWORD);
-impl_inner!(ProcessId: DWORD);
+pub use self::process_id::*;
+pub use self::process_rights::*;
+pub use self::process::*;
+pub use self::process_enum::*;

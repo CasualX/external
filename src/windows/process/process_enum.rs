@@ -13,32 +13,40 @@ use Result;
 
 use super::ProcessId;
 
-/// See [`processes`](fn.processes.html).
+//----------------------------------------------------------------
+
+/// Process enumeration.
+///
+/// Uses the Toolhelp32 snapshot API.
 #[derive(Debug)]
-pub struct EnumProcesses(HANDLE, bool);
-impl EnumProcesses {
-	fn create() -> Result<EnumProcesses> {
+pub struct EnumProcess {
+	handle: HANDLE,
+	next: bool,
+}
+impl EnumProcess {
+	/// Iterate over the running processes.
+	pub fn create() -> Result<EnumProcess> {
 		let handle = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
 		if handle == INVALID_HANDLE_VALUE {
 			Err(ErrorCode::last())
 		}
 		else {
-			Ok(EnumProcesses(handle, false))
+			Ok(EnumProcess { handle, next: false })
 		}
 	}
 }
-impl Iterator for EnumProcesses {
+impl Iterator for EnumProcess {
 	type Item = ProcessEntry;
 	fn next(&mut self) -> Option<ProcessEntry> {
 		unsafe {
 			let mut entry: ProcessEntry = mem::uninitialized();
 			entry.0.dwSize = mem::size_of::<PROCESSENTRY32W>() as DWORD;
-			let result = if self.1 {
-				Process32NextW(self.0, &mut entry.0)
+			let result = if self.next {
+				Process32NextW(self.handle, &mut entry.0)
 			}
 			else {
-				self.1 = true;
-				Process32FirstW(self.0, &mut entry.0)
+				self.next = true;
+				Process32FirstW(self.handle, &mut entry.0)
 			};
 			if result != FALSE {
 				Some(entry)
@@ -49,11 +57,13 @@ impl Iterator for EnumProcesses {
 		}
 	}
 }
-impl Drop for EnumProcesses {
+impl Drop for EnumProcess {
 	fn drop(&mut self) {
-		unsafe { CloseHandle(self.0); }
+		unsafe { CloseHandle(self.handle); }
 	}
 }
+
+//----------------------------------------------------------------
 
 /// Process entry.
 ///
@@ -79,8 +89,12 @@ impl ProcessEntry {
 		self.0.pcPriClassBase
 	}
 	/// The name of the executable file for the process.
+	pub fn exe_file_wide(&self) -> &[u16] {
+		from_wchar_buf(&self.0.szExeFile)
+	}
+	/// The name of the executable file for the process.
 	pub fn exe_file(&self) -> OsString {
-		OsString::from_wide(from_wchar_buf(&self.0.szExeFile[..]))
+		OsString::from_wide(self.exe_file_wide())
 	}
 }
 impl fmt::Debug for ProcessEntry {
@@ -88,19 +102,14 @@ impl fmt::Debug for ProcessEntry {
 		f.debug_struct("ProcessEntry")
 			.field("dwSize", &self.0.dwSize)
 			//.field("cntUsage", &self.0.cntUsage)
-			.field("th32ProcessID", &self.0.th32ProcessID)
+			.field("th32ProcessID", &self.process_id())
 			//.field("th32DefaultHeapID", &self.0.th32DefaultHeapID)
 			//.field("th32ModuleID", &self.0.th32ModuleID)
 			.field("cntThreads", &self.0.cntThreads)
-			.field("th32ParentProcessID", &self.0.th32ParentProcessID)
+			.field("th32ParentProcessID", &self.parent_id())
 			.field("pcPriClassBase", &self.0.pcPriClassBase)
 			//.field("dwFlags", &self.0.dwFlags)
-			.field("szExeFile", &String::from_utf16(from_wchar_buf(&self.0.szExeFile[..])))
+			.field("szExeFile", &self.exe_file())
 			.finish()
 	}
-}
-
-/// Iterate over the running processes.
-pub fn processes() -> Result<EnumProcesses> {
-	EnumProcesses::create()
 }

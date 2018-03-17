@@ -1,4 +1,3 @@
-
 use std::{mem, ptr};
 use std::ffi::OsString;
 use std::os::windows::ffi::{OsStringExt};
