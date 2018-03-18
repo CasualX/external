@@ -58,6 +58,13 @@ impl AsRef<[SystemModule]> for SystemModules {
 		unsafe { mem::transmute(self.as_inner()) }
 	}
 }
+impl<'a> IntoIterator for &'a SystemModules {
+	type Item = &'a SystemModule;
+	type IntoIter = slice::Iter<'a, SystemModule>;
+	fn into_iter(self) -> slice::Iter<'a, SystemModule> {
+		self.iter()
+	}
+}
 impl fmt::Debug for SystemModules {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		f.debug_list()
