@@ -6,11 +6,12 @@ Captures the center 256x256 rect of the foreground window.
 
 #![allow(unused_variables)]
 
-use ::std::fs;
-
 extern crate external;
-use ::external::snap;
-use ::external::window::{Window};
+
+use external::snap;
+use external::window::{Window};
+
+use std::fs;
 
 fn main() {
 	// Create the capture context, allocating the destination buffer

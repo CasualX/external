@@ -3,9 +3,9 @@ extern crate external;
 
 use external::wndclass::{pump_once};
 
-use ::std::time::{Duration};
-use ::std::thread::{sleep};
-use ::std::sync::atomic;
+use std::time::{Duration};
+use std::thread::{sleep};
+use std::sync::atomic;
 
 static MOUSE_X: atomic::AtomicIsize = atomic::ATOMIC_ISIZE_INIT;
 static MOUSE_Y: atomic::AtomicIsize = atomic::ATOMIC_ISIZE_INIT;

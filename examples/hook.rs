@@ -7,7 +7,7 @@ Example demonstrating the usage of low level hooks.
 #[macro_use]
 extern crate external;
 
-use external::input::{vk};
+use external::input::vk;
 use external::wndclass::{pump_once, sleep};
 
 // Any communcation has to happen through global mutable state...
