@@ -11,7 +11,6 @@ use winapi::shared::ntdef::{HANDLE, WCHAR};
 use winapi::shared::minwindef::{LPVOID, DWORD, TRUE, FALSE};
 
 use process::{ProcessId, ProcessRights};
-use module::{EnumModules, modules};
 use thread::Thread;
 use ptr::RawPtr;
 use error::ErrorCode;
@@ -98,10 +97,6 @@ impl Process {
 				Err(ErrorCode::last())
 			}
 		}
-	}
-	/// Iterate over the modules in this process.
-	pub fn modules(&self) -> Result<EnumModules> {
-		modules(try!(self.pid()))
 	}
 }
 impl Clone for Process {

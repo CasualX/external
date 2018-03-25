@@ -1,7 +1,3 @@
-/*!
-Modules.
-*/
-
 use std::{mem, fmt};
 use std::ffi::{OsString};
 use std::os::windows::ffi::{OsStringExt};
@@ -17,11 +13,14 @@ use util::from_wchar_buf;
 use ptr::RawPtr;
 use {Result, IntoInner, FromInner};
 
-/// See [`modules`](fn.modules.html).
+/// Module enumeration.
+///
+/// Uses the Toolhelp32 snapshot API.
 #[derive(Debug)]
 pub struct EnumModules(HANDLE, bool);
 impl EnumModules {
-	fn create(pid: ProcessId) -> Result<EnumModules> {
+	/// Creates an iterator over the modules in a process.
+	pub fn create(pid: ProcessId) -> Result<EnumModules> {
 		let handle = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid.into_inner()) };
 		if handle == INVALID_HANDLE_VALUE {
 			Err(ErrorCode::last())
@@ -81,12 +80,20 @@ impl ModuleEntry {
 		self.0.hModule
 	}
 	/// The module name.
+	pub fn name_wide(&self) -> &[u16] {
+		from_wchar_buf(&self.0.szModule)
+	}
+	/// The module name.
 	pub fn name(&self) -> OsString {
-		OsString::from_wide(from_wchar_buf(&self.0.szModule))
+		OsString::from_wide(self.name_wide())
+	}
+	/// The module path.
+	pub fn exe_path_wide(&self) -> &[u16] {
+		from_wchar_buf(&self.0.szExePath)
 	}
 	/// The module path.
 	pub fn exe_path(&self) -> OsString {
-		OsString::from_wide(from_wchar_buf(&self.0.szExePath))
+		OsString::from_wide(self.exe_path_wide())
 	}
 }
 impl fmt::Debug for ModuleEntry {
@@ -104,9 +111,4 @@ impl fmt::Debug for ModuleEntry {
 			.field("szExePath", &self.exe_path())
 			.finish()
 	}
-}
-
-/// Creates an iterator over the modules in a process.
-pub fn modules(pid: ProcessId) -> Result<EnumModules> {
-	EnumModules::create(pid)
 }
