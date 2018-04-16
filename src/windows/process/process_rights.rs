@@ -6,6 +6,7 @@ use winapi::um::winnt::{PROCESS_ALL_ACCESS, PROCESS_CREATE_PROCESS, PROCESS_CREA
 /// Create process access rights using the builder pattern.
 ///
 /// See [Process Security and Access Rights](https://msdn.microsoft.com/en-us/library/windows/desktop/ms684880.aspx) for more information.
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct ProcessRights(DWORD);
 impl_inner!(ProcessRights: DWORD);
 impl ProcessRights {
@@ -13,6 +14,15 @@ impl ProcessRights {
 		ProcessRights(0)
 	}
 	pub const ALL_ACCESS: ProcessRights = ProcessRights(PROCESS_ALL_ACCESS);
+
+	/// Has any of the rights.
+	pub fn any(self, rights: ProcessRights) -> bool {
+		self.0 & rights.0 != 0
+	}
+	/// Has all the rights.
+	pub fn all(self, rights: ProcessRights) -> bool {
+		self.0 & rights.0 == rights.0
+	}
 
 	pub fn delete(self) -> ProcessRights {
 		ProcessRights(self.0 | DELETE)
@@ -66,4 +76,14 @@ impl ProcessRights {
 	pub fn vm_write(self) -> ProcessRights {
 		ProcessRights(self.0 | PROCESS_VM_WRITE)
 	}
+}
+impl Default for ProcessRights {
+	fn default() -> ProcessRights {
+		ProcessRights::new()
+	}
+}
+
+#[macro_export]
+macro_rules! process_rights {
+	($($ident:ident),*) => { $crate::process::ProcessRights::new()$(.$ident())* };
 }
