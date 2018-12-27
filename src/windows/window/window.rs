@@ -97,7 +97,7 @@ impl Window {
 	#[cfg(target_pointer_width = "32")]
 	pub fn set_user_data<T>(self, data: usize) {
 		unsafe {
-			SetWindowLongW(self.into_inner(), GWLP_USERDATA, data as LONG_PTR);
+			SetWindowLongW(self.into_inner(), GWLP_USERDATA, data as i32);
 		}
 	}
 	/// Returns the window title of this window.
