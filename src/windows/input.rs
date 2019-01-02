@@ -39,38 +39,38 @@ impl From<VirtualKey> for BYTE {
 pub mod vk {
 	use super::VirtualKey;
 
-	pub const LBUTTON: VirtualKey = VirtualKey(::winapi::um::winuser::VK_LBUTTON as u8);
-	pub const RBUTTON: VirtualKey = VirtualKey(::winapi::um::winuser::VK_RBUTTON as u8);
-	pub const CANCEL: VirtualKey = VirtualKey(::winapi::um::winuser::VK_CANCEL as u8);
-	pub const MBUTTON: VirtualKey = VirtualKey(::winapi::um::winuser::VK_MBUTTON as u8);
-	pub const XBUTTON1: VirtualKey = VirtualKey(::winapi::um::winuser::VK_XBUTTON1 as u8);
-	pub const XBUTTON2: VirtualKey = VirtualKey(::winapi::um::winuser::VK_XBUTTON2 as u8);
-	pub const BACK: VirtualKey = VirtualKey(::winapi::um::winuser::VK_BACK as u8);
-	pub const TAB: VirtualKey = VirtualKey(::winapi::um::winuser::VK_TAB as u8);
-	pub const CLEAR: VirtualKey = VirtualKey(::winapi::um::winuser::VK_CLEAR as u8);
-	pub const RETURN: VirtualKey = VirtualKey(::winapi::um::winuser::VK_RETURN as u8);
+	pub const LBUTTON: VirtualKey = VirtualKey(winapi::um::winuser::VK_LBUTTON as u8);
+	pub const RBUTTON: VirtualKey = VirtualKey(winapi::um::winuser::VK_RBUTTON as u8);
+	pub const CANCEL: VirtualKey = VirtualKey(winapi::um::winuser::VK_CANCEL as u8);
+	pub const MBUTTON: VirtualKey = VirtualKey(winapi::um::winuser::VK_MBUTTON as u8);
+	pub const XBUTTON1: VirtualKey = VirtualKey(winapi::um::winuser::VK_XBUTTON1 as u8);
+	pub const XBUTTON2: VirtualKey = VirtualKey(winapi::um::winuser::VK_XBUTTON2 as u8);
+	pub const BACK: VirtualKey = VirtualKey(winapi::um::winuser::VK_BACK as u8);
+	pub const TAB: VirtualKey = VirtualKey(winapi::um::winuser::VK_TAB as u8);
+	pub const CLEAR: VirtualKey = VirtualKey(winapi::um::winuser::VK_CLEAR as u8);
+	pub const RETURN: VirtualKey = VirtualKey(winapi::um::winuser::VK_RETURN as u8);
 
-	pub const SHIFT: VirtualKey = VirtualKey(::winapi::um::winuser::VK_SHIFT as u8);
-	pub const CONTROL: VirtualKey = VirtualKey(::winapi::um::winuser::VK_CONTROL as u8);
-	pub const ALT: VirtualKey = VirtualKey(::winapi::um::winuser::VK_MENU as u8);
-	pub const PAUSE: VirtualKey = VirtualKey(::winapi::um::winuser::VK_PAUSE as u8);
-	pub const CAPSLOCK: VirtualKey = VirtualKey(::winapi::um::winuser::VK_CAPITAL as u8);
-	pub const ESCAPE: VirtualKey = VirtualKey(::winapi::um::winuser::VK_ESCAPE as u8);
+	pub const SHIFT: VirtualKey = VirtualKey(winapi::um::winuser::VK_SHIFT as u8);
+	pub const CONTROL: VirtualKey = VirtualKey(winapi::um::winuser::VK_CONTROL as u8);
+	pub const ALT: VirtualKey = VirtualKey(winapi::um::winuser::VK_MENU as u8);
+	pub const PAUSE: VirtualKey = VirtualKey(winapi::um::winuser::VK_PAUSE as u8);
+	pub const CAPSLOCK: VirtualKey = VirtualKey(winapi::um::winuser::VK_CAPITAL as u8);
+	pub const ESCAPE: VirtualKey = VirtualKey(winapi::um::winuser::VK_ESCAPE as u8);
 
-	pub const SPACE: VirtualKey = VirtualKey(::winapi::um::winuser::VK_SPACE as u8);
-	pub const PAGE_UP: VirtualKey = VirtualKey(::winapi::um::winuser::VK_PRIOR as u8);
-	pub const PAGE_DOWN: VirtualKey = VirtualKey(::winapi::um::winuser::VK_NEXT as u8);
-	pub const END: VirtualKey = VirtualKey(::winapi::um::winuser::VK_END as u8);
-	pub const HOME: VirtualKey = VirtualKey(::winapi::um::winuser::VK_HOME as u8);
-	pub const LEFT: VirtualKey = VirtualKey(::winapi::um::winuser::VK_LEFT as u8);
-	pub const UP: VirtualKey = VirtualKey(::winapi::um::winuser::VK_UP as u8);
-	pub const RIGHT: VirtualKey = VirtualKey(::winapi::um::winuser::VK_RIGHT as u8);
-	pub const DOWN: VirtualKey = VirtualKey(::winapi::um::winuser::VK_DOWN as u8);
-	pub const SNAPSHOT: VirtualKey = VirtualKey(::winapi::um::winuser::VK_SNAPSHOT as u8);
-	pub const INSERT: VirtualKey = VirtualKey(::winapi::um::winuser::VK_INSERT as u8);
-	pub const DELETE: VirtualKey = VirtualKey(::winapi::um::winuser::VK_DELETE as u8);
+	pub const SPACE: VirtualKey = VirtualKey(winapi::um::winuser::VK_SPACE as u8);
+	pub const PAGE_UP: VirtualKey = VirtualKey(winapi::um::winuser::VK_PRIOR as u8);
+	pub const PAGE_DOWN: VirtualKey = VirtualKey(winapi::um::winuser::VK_NEXT as u8);
+	pub const END: VirtualKey = VirtualKey(winapi::um::winuser::VK_END as u8);
+	pub const HOME: VirtualKey = VirtualKey(winapi::um::winuser::VK_HOME as u8);
+	pub const LEFT: VirtualKey = VirtualKey(winapi::um::winuser::VK_LEFT as u8);
+	pub const UP: VirtualKey = VirtualKey(winapi::um::winuser::VK_UP as u8);
+	pub const RIGHT: VirtualKey = VirtualKey(winapi::um::winuser::VK_RIGHT as u8);
+	pub const DOWN: VirtualKey = VirtualKey(winapi::um::winuser::VK_DOWN as u8);
+	pub const SNAPSHOT: VirtualKey = VirtualKey(winapi::um::winuser::VK_SNAPSHOT as u8);
+	pub const INSERT: VirtualKey = VirtualKey(winapi::um::winuser::VK_INSERT as u8);
+	pub const DELETE: VirtualKey = VirtualKey(winapi::um::winuser::VK_DELETE as u8);
 
-	//pub const : VirtualKey = VirtualKey(::winapi::um::winuser::VK_ as u8);
+	//pub const : VirtualKey = VirtualKey(winapi::um::winuser::VK_ as u8);
 }
 
 //----------------------------------------------------------------

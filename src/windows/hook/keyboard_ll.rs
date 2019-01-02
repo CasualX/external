@@ -7,8 +7,8 @@ use std::{ptr, fmt};
 use winapi::um::winuser::{SetWindowsHookExW, WH_KEYBOARD_LL, KBDLLHOOKSTRUCT};
 use winapi::shared::minwindef::{UINT, WPARAM};
 
-use error::ErrorCode;
-use input::VirtualKey;
+use crate::error::ErrorCode;
+use crate::input::VirtualKey;
 
 use super::{Context, Invoke, Hook};
 
@@ -132,7 +132,7 @@ impl fmt::Debug for KeyboardLL {
 
 /// Low level keyboard hook callback.
 pub trait CallKeyboardLL: Invoke {
-	fn callback(&mut KeyboardLL);
+	fn callback(arg: &mut KeyboardLL);
 	/// Registers the low-level keyboard hook.
 	fn register() -> Result<Hook, ErrorCode> {
 		unsafe {
@@ -151,8 +151,8 @@ pub trait CallKeyboardLL: Invoke {
 
 #[cfg(test)]
 mod tests {
-	use ::wndclass::{pump_once};
-	use ::input::{vk, key_down, key_up};
+	use crate::wndclass::{pump_once};
+	use crate::input::{vk, key_down, key_up};
 
 	#[test]
 	fn test_keyboard_ll() {

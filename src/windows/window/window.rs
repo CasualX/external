@@ -8,10 +8,10 @@ use winapi::shared::ntdef::{WCHAR};
 use winapi::shared::windef::{HWND, POINT};
 use winapi::shared::minwindef::{FALSE, DWORD};
 
-use process::ProcessId;
-use thread::ThreadId;
-use error::ErrorCode;
-use {Result, FromInner, IntoInner};
+use crate::process::ProcessId;
+use crate::thread::ThreadId;
+use crate::error::ErrorCode;
+use crate::{Result, FromInner, IntoInner};
 
 /// Abstracts a `HWND`.
 ///

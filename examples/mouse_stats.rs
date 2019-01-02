@@ -49,7 +49,7 @@ fn main() {
 		loop {
 			dx = -dx;
 			external::input::mouse_move(dx, 0);
-			::std::thread::sleep(Duration::new(0, 1000));
+			std::thread::sleep(Duration::new(0, 1000));
 		}
 	});
 	while pump_once() {

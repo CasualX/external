@@ -4,10 +4,10 @@ use std::os::windows::ffi::OsStringExt;
 
 use ntdll::*;
 
-use FromInner;
-use thread::ThreadId;
-use process::ProcessId;
-use ptr::RawPtr;
+use crate::FromInner;
+use crate::thread::ThreadId;
+use crate::process::ProcessId;
+use crate::ptr::RawPtr;
 
 //----------------------------------------------------------------
 

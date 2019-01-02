@@ -22,7 +22,7 @@ pub mod control;
 pub mod snap;
 pub mod system;
 
-pub type Result<T> = ::std::result::Result<T, error::ErrorCode>;
+pub type Result<T> = std::result::Result<T, error::ErrorCode>;
 
 pub mod flat {
 	pub use super::Result;
@@ -39,5 +39,5 @@ pub mod flat {
 	pub use super::input::*;
 	pub use super::control::*;
 	pub use super::system::*;
-	pub use ::{AsInner, AsInnerMut, FromInner, IntoInner};
+	pub use crate::{AsInner, AsInnerMut, FromInner, IntoInner};
 }

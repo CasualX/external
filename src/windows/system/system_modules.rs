@@ -3,8 +3,8 @@ use std::path::Path;
 
 use ntdll::*;
 
-use ptr::RawPtr;
-use {AsInner, util};
+use crate::ptr::RawPtr;
+use crate::{AsInner, util};
 
 //----------------------------------------------------------------
 

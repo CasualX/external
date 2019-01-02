@@ -5,10 +5,10 @@ use winapi::um::tlhelp32::{CreateToolhelp32Snapshot, Thread32First, Thread32Next
 use winapi::shared::ntdef::{HANDLE, LONG};
 use winapi::shared::minwindef::{DWORD, FALSE};
 
-use process::ProcessId;
-use thread::ThreadId;
-use error::ErrorCode;
-use {Result, FromInner};
+use crate::process::ProcessId;
+use crate::thread::ThreadId;
+use crate::error::ErrorCode;
+use crate::{Result, FromInner};
 
 //----------------------------------------------------------------
 
