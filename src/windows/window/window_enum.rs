@@ -6,9 +6,9 @@ use winapi::um::winuser::*;
 use winapi::shared::windef::{HWND};
 use winapi::shared::minwindef::{BOOL, FALSE, TRUE, LPARAM};
 
-use error::ErrorCode;
-use window::Window;
-use Result;
+use crate::error::ErrorCode;
+use crate::window::Window;
+use crate::Result;
 
 struct EnumWindowsContext<'a> {
 	callback: &'a mut FnMut(Window) -> bool,

@@ -1,14 +1,12 @@
 [package]
 name = "external"
 version = "0.1.0"
+edition = "2018"
 
-[features]
-ntapi = ["ntdll"]
+[dependencies.ntdll]
+git = "https://github.com/CasualX/ntdll"
+optional = true
 
-[dependencies]
-ntdll = { git = "https://github.com/CasualX/ntdll", optional = true }
-
-winapi = { version = "0.3", features = [
-	"winuser", "processthreadsapi", "handleapi", "synchapi", "winbase", "tlhelp32",
-	"consoleapi", "errhandlingapi", "wingdi", "memoryapi", "winerror"
-] }
+[dependencies.winapi]
+version = "0.3"
+features = ["consoleapi", "errhandlingapi", "handleapi", "memoryapi", "processthreadsapi", "synchapi", "tlhelp32", "winbase", "wingdi", "winerror", "winuser"]

@@ -44,7 +44,7 @@ pub fn my_callback() -> Result<external::hook::Hook, external::error::ErrorCode>
 	enum T {}
 	impl external::hook::Invoke for T {
 		unsafe fn invoke(context: &mut external::hook::Context) {
-			<T as external::hook::CallKeyboardLL>::callback(::std::mem::transmute(context));
+			<T as external::hook::CallKeyboardLL>::callback(std::mem::transmute(context));
 		}
 	}
 	impl external::hook::CallKeyboardLL for T {
@@ -86,7 +86,7 @@ pub struct Context {
 /// Thunks the system's `HOOKPROC`.
 pub trait Invoke {
 	/// Cast the raw context to something more sensible for the specific hook type and invoke the real callback handler.
-	unsafe fn invoke(&mut Context);
+	unsafe fn invoke(arg: &mut Context);
 
 	#[allow(non_snake_case)]
 	#[doc(hidden)]
@@ -176,7 +176,7 @@ macro_rules! windows_hook {
 		enum $name {}
 		impl $crate::hook::Invoke for $name {
 			unsafe fn invoke(context: &mut $crate::hook::Context) {
-				<Self as $crate::hook::$call>::callback(::std::mem::transmute(context));
+				<Self as $crate::hook::$call>::callback(std::mem::transmute(context));
 			}
 		}
 		impl $crate::hook::$call for $name {

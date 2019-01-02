@@ -8,8 +8,8 @@ use winapi::um::winuser::{SetWindowsHookExW, WH_MOUSE_LL, MSLLHOOKSTRUCT};
 use winapi::um::winuser::{WM_MOUSEMOVE, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_XBUTTONDOWN, WM_XBUTTONUP, WM_MOUSEWHEEL, WM_MOUSEHWHEEL, XBUTTON1, XBUTTON2};
 use winapi::shared::minwindef::{UINT, WPARAM};
 
-use error::ErrorCode;
-use input::{vk, VirtualKey};
+use crate::error::ErrorCode;
+use crate::input::{vk, VirtualKey};
 
 use super::{Context, Invoke, Hook};
 
@@ -138,7 +138,7 @@ impl fmt::Debug for MouseLL {
 
 /// Low level mouse hook callback.
 pub trait CallMouseLL: Invoke {
-	fn callback(&mut MouseLL);
+	fn callback(arg: &mut MouseLL);
 	/// Registers the low-level mouse hook.
 	fn register() -> Result<Hook, ErrorCode> {
 		unsafe {

@@ -10,11 +10,11 @@ use winapi::um::winnt::{DUPLICATE_SAME_ACCESS};
 use winapi::shared::ntdef::{HANDLE, WCHAR};
 use winapi::shared::minwindef::{LPVOID, DWORD, TRUE, FALSE};
 
-use process::{ProcessId, ProcessRights};
-use thread::Thread;
-use ptr::RawPtr;
-use error::ErrorCode;
-use {Result, IntoInner, FromInner};
+use crate::process::{ProcessId, ProcessRights};
+use crate::thread::Thread;
+use crate::ptr::RawPtr;
+use crate::error::ErrorCode;
+use crate::{Result, IntoInner, FromInner};
 
 /// Process handle.
 #[derive(Debug)]

@@ -10,10 +10,10 @@ use winapi::um::winbase::{WAIT_FAILED};
 use winapi::shared::ntdef::{HANDLE};
 use winapi::shared::minwindef::{DWORD, FALSE, TRUE};
 
-use process::ProcessId;
-use thread::{ThreadId, ThreadRights};
-use error::ErrorCode;
-use {Result, IntoInner, FromInner};
+use crate::process::ProcessId;
+use crate::thread::{ThreadId, ThreadRights};
+use crate::error::ErrorCode;
+use crate::{Result, IntoInner, FromInner};
 
 //----------------------------------------------------------------
 

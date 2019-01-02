@@ -7,9 +7,9 @@ use winapi::um::tlhelp32::{CreateToolhelp32Snapshot, Process32FirstW, Process32N
 use winapi::shared::ntdef::{HANDLE, LONG};
 use winapi::shared::minwindef::{FALSE, DWORD};
 
-use util::from_wchar_buf;
-use error::ErrorCode;
-use Result;
+use crate::util::from_wchar_buf;
+use crate::error::ErrorCode;
+use crate::Result;
 
 use super::ProcessId;
 

@@ -14,10 +14,10 @@ use winapi::shared::ntdef::{HANDLE};
 use winapi::shared::basetsd::{SIZE_T};
 use winapi::shared::minwindef::{FALSE, BOOL, DWORD, LPVOID, LPCVOID};
 
-use process::Process;
-use error::ErrorCode;
-use ptr::{Pod, RawPtr, TypePtr};
-use {Result, AsInner, IntoInner, FromInner};
+use crate::process::Process;
+use crate::error::ErrorCode;
+use crate::ptr::{Pod, RawPtr, TypePtr};
+use crate::{Result, AsInner, IntoInner, FromInner};
 
 //----------------------------------------------------------------
 

@@ -7,11 +7,11 @@ use winapi::um::tlhelp32::{CreateToolhelp32Snapshot, Module32FirstW, Module32Nex
 use winapi::shared::ntdef::{HANDLE};
 use winapi::shared::minwindef::{DWORD, FALSE, HMODULE};
 
-use process::ProcessId;
-use error::ErrorCode;
-use util::from_wchar_buf;
-use ptr::RawPtr;
-use {Result, IntoInner, FromInner};
+use crate::process::ProcessId;
+use crate::error::ErrorCode;
+use crate::util::from_wchar_buf;
+use crate::ptr::RawPtr;
+use crate::{Result, IntoInner, FromInner};
 
 /// Module enumeration.
 ///

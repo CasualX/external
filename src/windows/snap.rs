@@ -11,9 +11,9 @@ use winapi::ctypes::{c_void};
 use winapi::shared::windef::{HDC, HBITMAP};
 use winapi::shared::minwindef::{DWORD};
 
-use window::Window;
-use error::ErrorCode;
-use {Result, IntoInner};
+use crate::window::Window;
+use crate::error::ErrorCode;
+use crate::{Result, IntoInner};
 
 //----------------------------------------------------------------
 

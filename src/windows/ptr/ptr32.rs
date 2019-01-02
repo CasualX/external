@@ -159,7 +159,7 @@ unsafe impl<T: ?Sized + Pod> Pod for TypePtr32<T> {}
 
 #[cfg(test)]
 mod tests {
-	use ::std::mem;
+	use std::mem;
 	use super::*;
 
 	#[test]

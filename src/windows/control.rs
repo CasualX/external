@@ -28,8 +28,8 @@ use winapi::um::consoleapi::{SetConsoleCtrlHandler};
 use winapi::um::wincon::{CTRL_C_EVENT, CTRL_BREAK_EVENT, CTRL_CLOSE_EVENT, CTRL_LOGOFF_EVENT, CTRL_SHUTDOWN_EVENT};
 use winapi::shared::minwindef::{BOOL, FALSE, TRUE, DWORD};
 
-use error::{ErrorCode};
-use Result;
+use crate::error::{ErrorCode};
+use crate::Result;
 
 //----------------------------------------------------------------
 

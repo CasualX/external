@@ -12,9 +12,9 @@ use winapi::shared::ntdef::{LPCWSTR};
 use winapi::shared::windef::{HWND, HICON, HCURSOR, HBRUSH};
 use winapi::shared::minwindef::{UINT, WPARAM, LPARAM, HINSTANCE, LRESULT, TRUE};
 
-use window::Window;
-use error::ErrorCode;
-use {Result, FromInner, IntoInner};
+use crate::window::Window;
+use crate::error::ErrorCode;
+use crate::{Result, FromInner, IntoInner};
 
 pub static CLASS_NAME: [u16; 6] = wide_str!('C' 'l' 'a' 's' 's' 0);
 pub static WINDOW_TITLE: [u16; 6] = wide_str!('T' 'i' 't' 'l' 'e' 0);

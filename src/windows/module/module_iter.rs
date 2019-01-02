@@ -2,8 +2,9 @@ use std::{fmt, mem};
 
 use winapi::shared::ntdef::{LIST_ENTRY, PVOID, ULONG, UNICODE_STRING, SHORT, UCHAR};
 
-use ptr::RawPtr;
+use crate::ptr::RawPtr;
 
+#[allow(non_snake_case)]
 #[repr(C)]
 struct LDR_DATA_ENTRY {
 	pub InLoadOrderModuleList: LIST_ENTRY,
@@ -38,6 +39,7 @@ impl fmt::Debug for LDR_DATA_ENTRY {
 			.finish()
 	}
 }
+#[allow(non_snake_case)]
 #[repr(C)]
 struct PEB_LDR_DATA
 {
@@ -78,7 +80,7 @@ impl MemoryOrderModuleIter {
 	/// Does not obtain the loader lock, do not keep the iterator while loading or unloading libraries.
 	pub unsafe fn new() -> MemoryOrderModuleIter {
 		let peb_ldr_data = get_peb_ldr_data();
-		println!("{:?} {:#?}", peb_ldr_data, unsafe { &mut *peb_ldr_data });
+		// println!("{:?} {:#?}", peb_ldr_data, &mut *peb_ldr_data);
 		MemoryOrderModuleIter {
 			it: (*peb_ldr_data).InLoadOrderModuleList.Flink as *mut LDR_DATA_ENTRY,
 			end: &mut (*peb_ldr_data).InLoadOrderModuleList as *mut _ as *mut LDR_DATA_ENTRY,
