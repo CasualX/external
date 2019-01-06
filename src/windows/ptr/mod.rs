@@ -6,8 +6,7 @@ Remote pointers.
 Why is this abstraction useful, why not just use Rust's raw pointers?
 
 These pointers point to memory in other processes; they are not valid within the process they are used from.
-
-There's also the issue that a 64bit process may interact with a 32bit process and thus requires 32bit pointers.
+The pointers may not be of the same size, eg. 64bit process with a pointer to a 32bit process.
 
 A decision was made to not support lifetimes, these are effectively raw pointers.
 Reading and writing across processes at least prevent reading from invalid memory although the result may not be as expected if it happens to be reused for a different datastructure.
@@ -18,11 +17,7 @@ There is both a raw pointer type and a typed pointer type.
 
 Typed pointers allow the type system to assist you in preventing mistakes when interacting with this memory.
 
-Due to limitations of the Windows API, the 64bit pointer type is not available on 32bit targets.
-
 # Operations
-
-There is no relation between 32bit and 64bit pointers, they cannot be converted to each other.
 
 All the pointer types implement these interfaces:
 
@@ -35,8 +30,7 @@ All the pointer types implement these interfaces:
 * Adding and subtracting an unsigned integer offset resulting in the same pointer with specified offset. For typed pointers the addition is in number of elements.
 
 * Display and Debug formatting.
-
-*/
+ */
 
 mod ptr64;
 mod ptr32;
@@ -57,8 +51,11 @@ pub type TypePtr<T> = TypePtr32<T>;
 mod pod;
 pub use self::pod::Pod;
 
+/// Interact with pointers on the native target.
 pub trait NativePtr: Sized {
+	/// Converts the pointer to a `usize` value.
 	fn into_usize(self) -> usize;
+	/// Creates a pointer from a `usize` value.
 	fn from_usize(address: usize) -> Self;
 }
 
@@ -95,5 +92,16 @@ impl<T: ?Sized> NativePtr for TypePtr32<T> {
 	}
 	fn from_usize(address: usize) -> TypePtr32<T> {
 		TypePtr32::from(address as u32)
+	}
+}
+
+impl From<RawPtr32> for RawPtr64 {
+	fn from(ptr: RawPtr32) -> RawPtr64 {
+		RawPtr64::from(ptr.into_u32() as u64)
+	}
+}
+impl<T: ?Sized> From<TypePtr32<T>> for TypePtr64<T> {
+	fn from(ptr: TypePtr32<T>) -> TypePtr64<T> {
+		TypePtr64::from(ptr.into_u32() as u64)
 	}
 }

@@ -37,11 +37,11 @@ impl RawPtr64 {
 	pub fn is_null(self) -> bool {
 		self.0 == 0
 	}
-	/// Returns the pointer as a `u64`.
+	/// Converts to a `u64` value.
 	pub fn into_u64(self) -> u64 {
 		self.0
 	}
-	/// Returns the pointer as a typed pointer.
+	/// Converts to a typed pointer.
 	pub fn into_typed<T: ?Sized>(self) -> TypePtr64<T> {
 		TypePtr64(self.0, PhantomData)
 	}
@@ -106,11 +106,11 @@ impl<T: ?Sized> TypePtr64<T> {
 	pub fn is_null(self) -> bool {
 		self.0 == 0
 	}
-	/// Returns the pointer as a `u64`.
+	/// Converts to a `u64` value.
 	pub fn into_u64(self) -> u64 {
 		self.0
 	}
-	/// Returns the pointer as a raw pointer.
+	/// Converts to a raw pointer.
 	pub fn into_raw(self) -> RawPtr64 {
 		RawPtr64(self.0)
 	}

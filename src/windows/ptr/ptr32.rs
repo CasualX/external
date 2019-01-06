@@ -37,11 +37,11 @@ impl RawPtr32 {
 	pub fn is_null(self) -> bool {
 		self.0 == 0
 	}
-	/// Returns the pointer as a `u32`.
+	/// Converts to a `u32` value.
 	pub fn into_u32(self) -> u32 {
 		self.0
 	}
-	/// Returns the pointer as a typed pointer.
+	/// Converts to a typed pointer.
 	pub fn into_typed<T: ?Sized>(self) -> TypePtr32<T> {
 		TypePtr32(self.0, PhantomData)
 	}
@@ -106,11 +106,11 @@ impl<T: ?Sized> TypePtr32<T> {
 	pub fn is_null(self) -> bool {
 		self.0 == 0
 	}
-	/// Returns the pointer as a `u32`.
+	/// Converts to a `u32` value.
 	pub fn into_u32(self) -> u32 {
 		self.0
 	}
-	/// Returns the pointer as a raw pointer.
+	/// Converts to a raw pointer.
 	pub fn into_raw(self) -> RawPtr32 {
 		RawPtr32(self.0)
 	}

@@ -7,7 +7,7 @@ use ntdll::*;
 use crate::FromInner;
 use crate::thread::ThreadId;
 use crate::process::ProcessId;
-use crate::ptr::RawPtr;
+use crate::ptr::{RawPtr, NativePtr};
 
 //----------------------------------------------------------------
 
@@ -112,7 +112,7 @@ impl fmt::Debug for ProcessInformation {
 pub struct ThreadInformation(SYSTEM_THREAD_INFORMATION);
 impl ThreadInformation {
 	pub fn start_address(&self) -> RawPtr {
-		RawPtr::from(self.0.StartAddress as usize)
+		RawPtr::from_usize(self.0.StartAddress as usize)
 	}
 	pub fn process_id(&self) -> ProcessId {
 		unsafe {
