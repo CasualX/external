@@ -12,7 +12,7 @@ use winapi::shared::minwindef::{LPVOID, DWORD, TRUE, FALSE};
 
 use crate::process::{ProcessId, ProcessRights};
 use crate::thread::Thread;
-use crate::ptr::RawPtr;
+use crate::ptr::{RawPtr, NativePtr};
 use crate::error::ErrorCode;
 use crate::{Result, IntoInner, FromInner};
 
@@ -74,8 +74,8 @@ impl Process {
 	}
 	pub fn create_thread(&self, start_address: RawPtr, parameter: RawPtr) -> Result<Thread> {
 		unsafe {
-			let start_address: usize = start_address.into();
-			let parameter: usize = parameter.into();
+			let start_address = start_address.into_usize();
+			let parameter = parameter.into_usize();
 			let handle = CreateRemoteThread(self.0, ptr::null_mut(), 0, mem::transmute(start_address), parameter as LPVOID, 0, ptr::null_mut());
 			if handle.is_null() {
 				Err(ErrorCode::last())

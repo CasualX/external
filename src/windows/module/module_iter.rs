@@ -2,7 +2,7 @@ use std::{fmt, mem};
 
 use winapi::shared::ntdef::{LIST_ENTRY, PVOID, ULONG, UNICODE_STRING, SHORT, UCHAR};
 
-use crate::ptr::RawPtr;
+use crate::ptr::{RawPtr, NativePtr};
 
 #[allow(non_snake_case)]
 #[repr(C)]
@@ -131,10 +131,10 @@ pub struct ModuleDataEntry {
 }
 impl ModuleDataEntry {
 	pub fn base_address(&self) -> RawPtr {
-		unsafe { RawPtr::from((*self.data_entry).BaseAddress as usize) }
+		unsafe { RawPtr::from_usize((*self.data_entry).BaseAddress as usize) }
 	}
 	pub fn entry_point(&self) -> RawPtr {
-		unsafe { RawPtr::from((*self.data_entry).EntryPoint as usize) }
+		unsafe { RawPtr::from_usize((*self.data_entry).EntryPoint as usize) }
 	}
 }
 impl fmt::Debug for ModuleDataEntry {

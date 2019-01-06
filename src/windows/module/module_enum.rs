@@ -10,7 +10,7 @@ use winapi::shared::minwindef::{DWORD, FALSE, HMODULE};
 use crate::process::ProcessId;
 use crate::error::ErrorCode;
 use crate::util::from_wchar_buf;
-use crate::ptr::RawPtr;
+use crate::ptr::{RawPtr, NativePtr};
 use crate::{Result, IntoInner, FromInner};
 
 /// Module enumeration.
@@ -69,7 +69,7 @@ impl ModuleEntry {
 	}
 	/// The base address of the module in the context of the owning process.
 	pub fn base(&self) -> RawPtr {
-		RawPtr::from(self.0.modBaseAddr as usize)
+		RawPtr::from_usize(self.0.modBaseAddr as usize)
 	}
 	/// The size of the module, in bytes.
 	pub fn size(&self) -> usize {
