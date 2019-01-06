@@ -16,7 +16,7 @@ use winapi::shared::minwindef::{FALSE, BOOL, DWORD, LPVOID, LPCVOID};
 
 use crate::process::Process;
 use crate::error::ErrorCode;
-use crate::ptr::{Pod, RawPtr, TypePtr};
+use crate::ptr::{Pod, RawPtr, TypePtr, NativePtr};
 use crate::{Result, AsInner, IntoInner, FromInner};
 
 //----------------------------------------------------------------
@@ -138,10 +138,9 @@ pub trait VirtualMemory {
 	}
 	#[inline]
 	fn vm_write_range<T: Pod>(&self, ptr: TypePtr<T>, val: &T, range: Range<usize>) -> Result<()> where Self: Sized {
-		let ptr: RawPtr = ptr.into();
-		let ptr = ptr + range.start;
+		let address = ptr.into_usize() + range.start;
 		let val = &val.as_bytes()[range];
-		self.vm_write_bytes(ptr, val)
+		self.vm_write_bytes(RawPtr::from_usize(address), val)
 	}
 	#[inline]
 	fn vm_commit(&self, ptr: RawPtr, len: usize, protect: Protect) -> Result<RawPtr> where Self: Sized {
@@ -164,12 +163,12 @@ pub trait VirtualMemory {
 impl VirtualMemory for Process {
 	#[inline]
 	fn vm_read_bytes<'a>(&self, ptr: RawPtr, bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
-		let ptr: usize = ptr.into();
+		let address = ptr.into_usize();
 		let num_bytes = mem::size_of_val(bytes);
 		let success = unsafe {
 			ReadProcessMemory(
 				*self.as_inner(),
-				ptr as LPCVOID,
+				address as LPCVOID,
 				bytes.as_mut_ptr() as LPVOID,
 				num_bytes as SIZE_T,
 				ptr::null_mut(),
@@ -184,13 +183,13 @@ impl VirtualMemory for Process {
 	}
 	#[inline]
 	fn vm_read_partial<'a>(&self, ptr: RawPtr, dest: &'a mut [u8]) -> Result<&'a mut [u8]> {
-		let ptr: usize = ptr.into();
+		let address = ptr.into_usize();
 		let mut bytes_read = 0;
 		let num_bytes = mem::size_of_val(dest);
 		let success = unsafe {
 			ReadProcessMemory(
 				*self.as_inner(),
-				ptr as LPCVOID,
+				address as LPCVOID,
 				dest.as_mut_ptr() as LPVOID,
 				num_bytes as SIZE_T,
 				&mut bytes_read,
@@ -211,13 +210,13 @@ impl VirtualMemory for Process {
 	}
 	#[inline]
 	fn vm_write_bytes(&self, ptr: RawPtr, bytes: &[u8]) -> Result<()> {
-		let ptr: usize = ptr.into();
+		let address = ptr.into_usize();
 		let mut bytes_written = 0;
 		let num_bytes = mem::size_of_val(bytes);
 		let success = unsafe {
 			WriteProcessMemory(
 				*self.as_inner(),
-				ptr as LPVOID,
+				address as LPVOID,
 				bytes.as_ptr() as LPCVOID,
 				num_bytes as SIZE_T,
 				&mut bytes_written,
@@ -232,13 +231,13 @@ impl VirtualMemory for Process {
 	}
 	#[inline]
 	fn vm_write_partial<'a>(&self, ptr: RawPtr, bytes: &'a [u8]) -> Result<&'a [u8]> {
-		let ptr: usize = ptr.into();
+		let address = ptr.into_usize();
 		let mut bytes_written = 0;
 		let num_bytes = mem::size_of_val(bytes);
 		let success = unsafe {
 			WriteProcessMemory(
 				*self.as_inner(),
-				ptr as LPVOID,
+				address as LPVOID,
 				bytes.as_ptr() as LPCVOID,
 				num_bytes as SIZE_T,
 				&mut bytes_written,
@@ -259,18 +258,18 @@ impl VirtualMemory for Process {
 	}
 	#[inline]
 	fn vm_alloc(&self, ptr: RawPtr, len: usize, alloc_type: AllocType, protect: Protect) -> Result<RawPtr> {
-		let ptr: usize = ptr.into();
+		let address = ptr.into_usize();
 		let result = unsafe {
 			VirtualAllocEx(
 				*self.as_inner(),
-				ptr as LPVOID,
+				address as LPVOID,
 				len as SIZE_T,
 				alloc_type.into_inner(),
 				protect.into_inner(),
 			)
 		};
 		if !result.is_null() {
-			Ok(RawPtr::from(result as usize))
+			Ok(RawPtr::from_usize(result as usize))
 		}
 		else {
 			Err(ErrorCode::last())
@@ -278,11 +277,11 @@ impl VirtualMemory for Process {
 	}
 	#[inline]
 	fn vm_free(&self, ptr: RawPtr, len: usize, free_type: FreeType) -> Result<()> {
-		let ptr: usize = ptr.into();
+		let address = ptr.into_usize();
 		let success = unsafe {
 			VirtualFreeEx(
 				*self.as_inner(),
-				ptr as LPVOID,
+				address as LPVOID,
 				len as SIZE_T,
 				free_type.into_inner(),
 			) != FALSE
@@ -296,12 +295,12 @@ impl VirtualMemory for Process {
 	}
 	#[inline]
 	fn vm_protect(&self, ptr: RawPtr, len: usize, protect: Protect) -> Result<Protect> {
-		let ptr: usize = ptr.into();
+		let address = ptr.into_usize();
 		let mut old = 0;
 		let success = unsafe {
 			VirtualProtectEx(
 				*self.as_inner(),
-				ptr as LPVOID,
+				address as LPVOID,
 				len as SIZE_T,
 				protect.into_inner(),
 				&mut old,
@@ -316,11 +315,11 @@ impl VirtualMemory for Process {
 	}
 	#[inline]
 	fn vm_query(&self, ptr: RawPtr) -> Result<MemoryInformation> {
-		let ptr: usize = ptr.into();
+		let address = ptr.into_usize();
 		let size = mem::size_of::<MEMORY_BASIC_INFORMATION>() as SIZE_T;
 		unsafe {
 			let mut mem_basic_info: MemoryInformation = mem::uninitialized();
-			if VirtualQueryEx(*self.as_inner(), ptr as LPCVOID, &mut mem_basic_info.0, size) != size {
+			if VirtualQueryEx(*self.as_inner(), address as LPCVOID, &mut mem_basic_info.0, size) != size {
 				Ok(mem_basic_info)
 			}
 			else {
