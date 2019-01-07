@@ -3,7 +3,7 @@ use std::path::Path;
 
 use ntdll::*;
 
-use crate::ptr::RawPtr;
+use crate::ptr::{RawPtr, NativePtr};
 use crate::{AsInner, util};
 
 //----------------------------------------------------------------
@@ -81,7 +81,7 @@ pub struct SystemModule(RTL_PROCESS_MODULE_INFORMATION);
 impl_inner!(SystemModule: RTL_PROCESS_MODULE_INFORMATION);
 impl SystemModule {
 	pub fn image_base(&self) -> RawPtr {
-		RawPtr::from(self.0.ImageBase as usize)
+		RawPtr::from_usize(self.0.ImageBase as usize)
 	}
 	pub fn image_size(&self) -> usize {
 		self.0.ImageSize as usize
