@@ -15,7 +15,7 @@ use winapi::shared::minwindef::{FALSE, LPVOID, LPCVOID};
 
 use crate::process::Process;
 use crate::error::ErrorCode;
-use crate::ptr::{Pod, RawPtr, TypePtr, NativePtr};
+use crate::ptr::{Pod, Ptr};
 use crate::{Result, AsInner, IntoInner, FromInner};
 
 //----------------------------------------------------------------
@@ -84,8 +84,7 @@ impl_inner!(MemoryInformation: MEMORY_BASIC_INFORMATION);
 impl Process {
 	/// Reads bytes into the destination buffer.
 	#[inline]
-	pub fn vm_read_bytes<'a>(&self, ptr: RawPtr, bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
-		let address = ptr.into_usize();
+	pub fn vm_read_bytes<'a>(&self, address: usize, bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
 		let num_bytes = mem::size_of_val(bytes);
 		let success = unsafe {
 			ReadProcessMemory(
@@ -105,8 +104,7 @@ impl Process {
 	}
 	/// Reads as many bytes as are available.
 	#[inline]
-	pub fn vm_read_partial<'a>(&self, ptr: RawPtr, dest: &'a mut [u8]) -> Result<&'a mut [u8]> {
-		let address = ptr.into_usize();
+	pub fn vm_read_partial<'a>(&self, address: usize, dest: &'a mut [u8]) -> Result<&'a mut [u8]> {
 		let mut bytes_read = 0;
 		let num_bytes = mem::size_of_val(dest);
 		let success = unsafe {
@@ -133,9 +131,10 @@ impl Process {
 	}
 	/// Reads a Pod `T` from the process.
 	#[inline]
-	pub fn vm_read<T: Pod>(&self, ptr: TypePtr<T>) -> Result<T> {
+	pub fn vm_read<T: Pod>(&self, ptr: Ptr<T>) -> Result<T> {
+		let address = ptr.into_raw() as usize;
 		let mut dest: T = unsafe { mem::uninitialized() };
-		match self.vm_read_bytes(ptr.into(), dest.as_bytes_mut()) {
+		match self.vm_read_bytes(address, dest.as_bytes_mut()) {
 			Ok(_) => Ok(dest),
 			Err(err) => {
 				mem::forget(dest);
@@ -145,15 +144,16 @@ impl Process {
 	}
 	/// Reads a slice of Pod `T` from the process.
 	#[inline]
-	pub fn vm_read_into<'a, T: Pod + ?Sized>(&self, ptr: TypePtr<T>, dest: &'a mut T) -> Result<&'a mut T> {
-		match self.vm_read_bytes(ptr.into(), dest.as_bytes_mut()) {
+	pub fn vm_read_into<'a, T: Pod + ?Sized>(&self, ptr: Ptr<T>, dest: &'a mut T) -> Result<&'a mut T> {
+		let address = ptr.into_raw() as usize;
+		match self.vm_read_bytes(address, dest.as_bytes_mut()) {
 			Ok(_) => Ok(dest),
 			Err(err) => Err(err),
 		}
 	}
 	/// Reads a number of Pod `T` and appends the read elements to the given Vec.
 	#[inline]
-	pub fn vm_read_append<'a, T: Pod>(&self, ptr: TypePtr<[T]>, dest: &'a mut Vec<T>, len: usize) -> Result<&'a mut [T]> {
+	pub fn vm_read_append<'a, T: Pod>(&self, ptr: Ptr<[T]>, dest: &'a mut Vec<T>, len: usize) -> Result<&'a mut [T]> {
 		let old_len = dest.len();
 		let new_len = usize::checked_add(old_len, len).expect("overflow");
 		if dest.capacity() < new_len {
@@ -175,8 +175,7 @@ impl Process {
 	}
 	/// Writes bytes.
 	#[inline]
-	pub fn vm_write_bytes(&self, ptr: RawPtr, bytes: &[u8]) -> Result<()> {
-		let address = ptr.into_usize();
+	pub fn vm_write_bytes(&self, address: usize, bytes: &[u8]) -> Result<()> {
 		let mut bytes_written = 0;
 		let num_bytes = mem::size_of_val(bytes);
 		let success = unsafe {
@@ -197,8 +196,7 @@ impl Process {
 	}
 	/// Writes as many bytes as it can.
 	#[inline]
-	pub fn vm_write_partial<'a>(&self, ptr: RawPtr, bytes: &'a [u8]) -> Result<&'a [u8]> {
-		let address = ptr.into_usize();
+	pub fn vm_write_partial<'a>(&self, address: usize, bytes: &'a [u8]) -> Result<&'a [u8]> {
 		let mut bytes_written = 0;
 		let num_bytes = mem::size_of_val(bytes);
 		let success = unsafe {
@@ -225,21 +223,21 @@ impl Process {
 	}
 	/// Writes the Pod `T` to the process.
 	#[inline]
-	pub fn vm_write<T: ?Sized + Pod>(&self, ptr: TypePtr<T>, val: &T) -> Result<()> {
-		self.vm_write_bytes(ptr.into(), val.as_bytes())
+	pub fn vm_write<T: ?Sized + Pod>(&self, ptr: Ptr<T>, val: &T) -> Result<()> {
+		let address = ptr.into_raw() as usize;
+		self.vm_write_bytes(address, val.as_bytes())
 	}
 	/// Writes a sub range of the Pod `T` to the process.
 	/// Panics if the range falls outside the bytes of the given value.
 	#[inline]
-	pub fn vm_write_range<T: Pod>(&self, ptr: TypePtr<T>, val: &T, range: Range<usize>) -> Result<()> {
-		let address = ptr.into_usize() + range.start;
+	pub fn vm_write_range<T: Pod>(&self, ptr: Ptr<T>, val: &T, range: Range<usize>) -> Result<()> {
+		let address = ptr.into_raw() as usize + range.start;
 		let val = &val.as_bytes()[range];
-		self.vm_write_bytes(RawPtr::from_usize(address), val)
+		self.vm_write_bytes(address, val)
 	}
 	/// Allocates memomry in the process.
 	#[inline]
-	pub fn vm_alloc(&self, ptr: RawPtr, len: usize, alloc_type: AllocType, protect: Protect) -> Result<RawPtr> {
-		let address = ptr.into_usize();
+	pub fn vm_alloc(&self, address: usize, len: usize, alloc_type: AllocType, protect: Protect) -> Result<usize> {
 		let result = unsafe {
 			VirtualAllocEx(
 				*self.as_inner(),
@@ -250,7 +248,7 @@ impl Process {
 			)
 		};
 		if !result.is_null() {
-			Ok(RawPtr::from_usize(result as usize))
+			Ok(result as usize)
 		}
 		else {
 			Err(ErrorCode::last())
@@ -258,18 +256,17 @@ impl Process {
 	}
 	/// Commits memory in the process.
 	#[inline]
-	pub fn vm_commit(&self, ptr: RawPtr, len: usize, protect: Protect) -> Result<RawPtr> {
-		self.vm_alloc(ptr, len, AllocType::COMMIT, protect)
+	pub fn vm_commit(&self, address: usize, len: usize, protect: Protect) -> Result<usize> {
+		self.vm_alloc(address, len, AllocType::COMMIT, protect)
 	}
 	/// Reserves memory in the process.
 	#[inline]
-	pub fn vm_reserve(&self, ptr: RawPtr, len: usize, protect: Protect) -> Result<RawPtr> {
-		self.vm_alloc(ptr, len, AllocType::RESERVE, protect)
+	pub fn vm_reserve(&self, address: usize, len: usize, protect: Protect) -> Result<usize> {
+		self.vm_alloc(address, len, AllocType::RESERVE, protect)
 	}
 	/// Frees memory in the process.
 	#[inline]
-	pub fn vm_free(&self, ptr: RawPtr, len: usize, free_type: FreeType) -> Result<()> {
-		let address = ptr.into_usize();
+	pub fn vm_free(&self, address: usize, len: usize, free_type: FreeType) -> Result<()> {
 		let success = unsafe {
 			VirtualFreeEx(
 				*self.as_inner(),
@@ -287,18 +284,17 @@ impl Process {
 	}
 	/// Decommits memory in the process.
 	#[inline]
-	pub fn vm_decommit(&self, ptr: RawPtr, len: usize) -> Result<()> {
-		self.vm_free(ptr, len, FreeType::DECOMMIT)
+	pub fn vm_decommit(&self, address: usize, len: usize) -> Result<()> {
+		self.vm_free(address, len, FreeType::DECOMMIT)
 	}
 	/// Releases memory in the process.
 	#[inline]
-	pub fn vm_release(&self, ptr: RawPtr) -> Result<()> {
-		self.vm_free(ptr, 0, FreeType::RELEASE)
+	pub fn vm_release(&self, address: usize) -> Result<()> {
+		self.vm_free(address, 0, FreeType::RELEASE)
 	}
 	/// Changes memory protection in the process.
 	#[inline]
-	pub fn vm_protect(&self, ptr: RawPtr, len: usize, protect: Protect) -> Result<Protect> {
-		let address = ptr.into_usize();
+	pub fn vm_protect(&self, address: usize, len: usize, protect: Protect) -> Result<Protect> {
 		let mut old = 0;
 		let success = unsafe {
 			VirtualProtectEx(
@@ -318,8 +314,7 @@ impl Process {
 	}
 	/// Queries the state of virtual memory in the process.
 	#[inline]
-	pub fn vm_query(&self, ptr: RawPtr) -> Result<MemoryInformation> {
-		let address = ptr.into_usize();
+	pub fn vm_query(&self, address: usize) -> Result<MemoryInformation> {
 		let size = mem::size_of::<MEMORY_BASIC_INFORMATION>() as SIZE_T;
 		unsafe {
 			let mut mem_basic_info: MemoryInformation = mem::uninitialized();

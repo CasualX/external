@@ -35,73 +35,20 @@ All the pointer types implement these interfaces:
 mod ptr64;
 mod ptr32;
 
-pub use self::ptr64::{RawPtr64, TypePtr64};
-pub use self::ptr32::{RawPtr32, TypePtr32};
+pub use self::ptr64::Ptr64;
+pub use self::ptr32::Ptr32;
 
 #[cfg(target_pointer_width = "64")]
-pub type RawPtr = RawPtr64;
-#[cfg(target_pointer_width = "64")]
-pub type TypePtr<T> = TypePtr64<T>;
+pub type Ptr<T> = Ptr64<T>;
 
 #[cfg(target_pointer_width = "32")]
-pub type RawPtr = RawPtr32;
-#[cfg(target_pointer_width = "32")]
-pub type TypePtr<T> = TypePtr32<T>;
+pub type Ptr<T> = Ptr32<T>;
 
 mod pod;
 pub use self::pod::Pod;
 
-/// Interact with pointers on the native target.
-pub trait NativePtr: Sized {
-	/// Converts the pointer to a `usize` value.
-	fn into_usize(self) -> usize;
-	/// Creates a pointer from a `usize` value.
-	fn from_usize(address: usize) -> Self;
-}
-
-#[cfg(target_pointer_width = "64")]
-impl NativePtr for RawPtr64 {
-	fn into_usize(self) -> usize {
-		self.into_u64() as usize
-	}
-	fn from_usize(address: usize) -> RawPtr64 {
-		RawPtr64::from(address as u64)
-	}
-}
-#[cfg(target_pointer_width = "64")]
-impl<T: ?Sized> NativePtr for TypePtr64<T> {
-	fn into_usize(self) -> usize {
-		self.into_u64() as usize
-	}
-	fn from_usize(address: usize) -> TypePtr64<T> {
-		TypePtr64::from(address as u64)
-	}
-}
-
-impl NativePtr for RawPtr32 {
-	fn into_usize(self) -> usize {
-		self.into_u32() as usize
-	}
-	fn from_usize(address: usize) -> RawPtr32 {
-		RawPtr32::from(address as u32)
-	}
-}
-impl<T: ?Sized> NativePtr for TypePtr32<T> {
-	fn into_usize(self) -> usize {
-		self.into_u32() as usize
-	}
-	fn from_usize(address: usize) -> TypePtr32<T> {
-		TypePtr32::from(address as u32)
-	}
-}
-
-impl From<RawPtr32> for RawPtr64 {
-	fn from(ptr: RawPtr32) -> RawPtr64 {
-		RawPtr64::from(ptr.into_u32() as u64)
-	}
-}
-impl<T: ?Sized> From<TypePtr32<T>> for TypePtr64<T> {
-	fn from(ptr: TypePtr32<T>) -> TypePtr64<T> {
-		TypePtr64::from(ptr.into_u32() as u64)
+impl<T: ?Sized> From<Ptr32<T>> for Ptr64<T> {
+	fn from(ptr: Ptr32<T>) -> Ptr64<T> {
+		Ptr64::from(ptr.into_raw() as u64)
 	}
 }
