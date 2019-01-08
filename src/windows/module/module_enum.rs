@@ -10,7 +10,6 @@ use winapi::shared::minwindef::{DWORD, FALSE, HMODULE};
 use crate::process::ProcessId;
 use crate::error::ErrorCode;
 use crate::util::from_wchar_buf;
-use crate::ptr::{RawPtr, NativePtr};
 use crate::{Result, IntoInner, FromInner};
 
 /// Module enumeration.
@@ -68,8 +67,8 @@ impl ModuleEntry {
 		unsafe { ProcessId::from_inner(self.0.th32ProcessID) }
 	}
 	/// The base address of the module in the context of the owning process.
-	pub fn base(&self) -> RawPtr {
-		RawPtr::from_usize(self.0.modBaseAddr as usize)
+	pub fn base(&self) -> usize {
+		self.0.modBaseAddr as usize
 	}
 	/// The size of the module, in bytes.
 	pub fn size(&self) -> usize {
@@ -104,8 +103,8 @@ impl fmt::Debug for ModuleEntry {
 			.field("th32ProcessID", &self.0.th32ProcessID)
 			//.field("GlblcntUsage", &self.0.GlblcntUsage)
 			//.field("ProccntUsage", &self.0.ProccntUsage)
-			.field("modBaseAddr", &self.0.modBaseAddr)
-			.field("modBaseSize", &(self.0.modBaseSize as *const ()))
+			.field("modBaseAddr", &format_args!("{:#x}", self.base()))
+			.field("modBaseSize", &format_args!("{:#x}", self.size()))
 			.field("hModule", &self.0.hModule)
 			.field("szModule", &self.name())
 			.field("szExePath", &self.exe_path())

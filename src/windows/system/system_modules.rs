@@ -3,7 +3,6 @@ use std::path::Path;
 
 use ntdll::*;
 
-use crate::ptr::{RawPtr, NativePtr};
 use crate::{AsInner, util};
 
 //----------------------------------------------------------------
@@ -80,8 +79,8 @@ impl fmt::Debug for SystemModules {
 pub struct SystemModule(RTL_PROCESS_MODULE_INFORMATION);
 impl_inner!(SystemModule: RTL_PROCESS_MODULE_INFORMATION);
 impl SystemModule {
-	pub fn image_base(&self) -> RawPtr {
-		RawPtr::from_usize(self.0.ImageBase as usize)
+	pub fn image_base(&self) -> usize {
+		self.0.ImageBase as usize
 	}
 	pub fn image_size(&self) -> usize {
 		self.0.ImageSize as usize
@@ -105,8 +104,8 @@ impl SystemModule {
 impl fmt::Debug for SystemModule {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		f.debug_struct("SystemModule")
-			.field("image_base", &self.image_base())
-			.field("image_size", &self.image_size())
+			.field("image_base", &format_args!("{:#x}", self.image_base()))
+			.field("image_size", &format_args!("{:#x}", self.image_size()))
 			.field("flags", &self.flags())
 			.field("file_name", &self.file_name())
 			.field("full_path_name", &self.full_path_name())

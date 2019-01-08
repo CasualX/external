@@ -2,8 +2,6 @@ use std::{fmt, mem};
 
 use winapi::shared::ntdef::{LIST_ENTRY, PVOID, ULONG, UNICODE_STRING, SHORT, UCHAR};
 
-use crate::ptr::{RawPtr, NativePtr};
-
 #[allow(non_snake_case)]
 #[repr(C)]
 struct LDR_DATA_ENTRY {
@@ -130,18 +128,18 @@ pub struct ModuleDataEntry {
 	data_entry: *mut LDR_DATA_ENTRY,
 }
 impl ModuleDataEntry {
-	pub fn base_address(&self) -> RawPtr {
-		unsafe { RawPtr::from_usize((*self.data_entry).BaseAddress as usize) }
+	pub fn base_address(&self) -> usize {
+		unsafe { (*self.data_entry).BaseAddress as usize }
 	}
-	pub fn entry_point(&self) -> RawPtr {
-		unsafe { RawPtr::from_usize((*self.data_entry).EntryPoint as usize) }
+	pub fn entry_point(&self) -> usize {
+		unsafe { (*self.data_entry).EntryPoint as usize }
 	}
 }
 impl fmt::Debug for ModuleDataEntry {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		f.debug_struct("ModuleDataEntry")
-			.field("base_address", &self.base_address())
-			.field("entry_point", &self.entry_point())
+			.field("base_address", &format_args!("{:#x}", self.base_address()))
+			.field("entry_point", &format_args!("{:#x}", self.entry_point()))
 			.finish()
 	}
 }
