@@ -3,7 +3,6 @@ use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
 
 use winapi::um::winuser::*;
-use winapi::shared::basetsd::{LONG_PTR};
 use winapi::shared::ntdef::{WCHAR};
 use winapi::shared::windef::{HWND, POINT};
 use winapi::shared::minwindef::{FALSE, DWORD};
@@ -85,7 +84,7 @@ impl Window {
 	#[cfg(target_pointer_width = "64")]
 	pub fn set_user_data<T>(self, data: usize) {
 		unsafe {
-			SetWindowLongPtrW(self.into_inner(), GWLP_USERDATA, data as LONG_PTR);
+			SetWindowLongPtrW(self.into_inner(), GWLP_USERDATA, data as _);
 		}
 	}
 	#[cfg(target_pointer_width = "32")]
