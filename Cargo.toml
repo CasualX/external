@@ -8,5 +8,5 @@ git = "https://github.com/CasualX/ntdll"
 optional = true
 
 [dependencies.winapi]
-version = "0.3"
+version = "0.3.6"
 features = ["consoleapi", "errhandlingapi", "handleapi", "memoryapi", "processthreadsapi", "synchapi", "tlhelp32", "winbase", "wingdi", "winerror", "winuser"]
