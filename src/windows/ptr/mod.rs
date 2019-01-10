@@ -30,7 +30,7 @@ All the pointer types implement these interfaces:
 * Adding and subtracting an unsigned integer offset resulting in the same pointer with specified offset. For typed pointers the addition is in number of elements.
 
 * Display and Debug formatting.
- */
+!*/
 
 mod ptr64;
 mod ptr32;

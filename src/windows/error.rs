@@ -1,6 +1,6 @@
 /*!
 Error codes.
-*/
+!*/
 
 use std::{fmt, error};
 

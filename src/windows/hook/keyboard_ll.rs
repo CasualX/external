@@ -1,6 +1,6 @@
 /*!
 Low level keyboard hook details.
-*/
+!*/
 
 use std::{ptr, fmt};
 

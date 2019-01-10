@@ -1,6 +1,6 @@
 /*!
 Modules.
-*/
+!*/
 
 mod module_enum;
 mod module_iter;

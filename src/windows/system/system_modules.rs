@@ -12,6 +12,7 @@ use crate::{AsInner, util};
 pub struct SystemModules(Vec<u8>);
 impl SystemModules {
 	/// Constructor.
+	#[inline(never)]
 	pub fn query() -> SystemModules {
 		let mut data = Vec::new();
 		let mut return_length = 0;
@@ -94,10 +95,9 @@ impl SystemModule {
 		}
 	}
 	pub fn file_name(&self) -> &Path {
-		let end = self.0.FullPathName.len();
-		let offset = cmp::min(self.0.OffsetToFileName as usize, end);
+		let offset = cmp::min(self.0.OffsetToFileName as usize, self.0.FullPathName.len());
 		unsafe {
-			mem::transmute(util::from_char_buf(&self.0.FullPathName[offset..end]))
+			mem::transmute(util::from_char_buf(&self.0.FullPathName[offset..]))
 		}
 	}
 }

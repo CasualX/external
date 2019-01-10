@@ -1,13 +1,11 @@
 /*!
 Track the total mouse distance moved.
-*/
-
-#[macro_use]
-extern crate external;
+!*/
 
 use external::wndclass::{pump_once};
-
-use std::time::{self, Duration, SystemTime, UNIX_EPOCH};
+use external::windows_hook;
+use external::system::time_s;
+use external::wndclass::sleep;
 
 // Uninitialized mouse coordinate value.
 const PT_UNINIT: i32 = 0x80000000u32 as i32;
@@ -33,7 +31,7 @@ windows_hook! {
 			MOUSE_PT_X = context.pt_x();
 			MOUSE_PT_Y = context.pt_y();
 
-			let time = time::precise_time_s();
+			let time = time_s();
 			let dt = time - MOUSE_TIME;
 			MOUSE_TIME = time;
 			MOUSE_DT = dt;
@@ -49,7 +47,7 @@ fn main() {
 		loop {
 			dx = -dx;
 			external::input::mouse_move(dx, 0);
-			std::thread::sleep(Duration::new(0, 1000));
+			sleep(1);
 		}
 	});
 	while pump_once() {

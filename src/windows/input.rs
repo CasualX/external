@@ -1,6 +1,6 @@
 /*!
 Virtual keys and input.
-*/
+!*/
 
 use winapi::ctypes::{c_int};
 use winapi::shared::minwindef::{DWORD};

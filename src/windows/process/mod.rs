@@ -1,6 +1,6 @@
 /*!
 Process handles.
-*/
+!*/
 
 mod process_id;
 mod process_rights;

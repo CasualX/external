@@ -22,7 +22,7 @@ let _guard = MyHandler::add().unwrap();
 
 // The ctrl handler is removed when the guard is dropped.
 ```
-*/
+!*/
 
 use winapi::um::consoleapi::{SetConsoleCtrlHandler};
 use winapi::um::wincon::{CTRL_C_EVENT, CTRL_BREAK_EVENT, CTRL_CLOSE_EVENT, CTRL_LOGOFF_EVENT, CTRL_SHUTDOWN_EVENT};

@@ -1,6 +1,6 @@
 /*!
 Window handles.
-*/
+!*/
 
 mod window;
 mod window_enum;

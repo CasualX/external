@@ -1,5 +1,5 @@
 /*!
-*/
+!*/
 
 macro_rules! wide_str {
     ($($c:tt)+) => {

@@ -1,6 +1,6 @@
 /*!
 Screenshots using GDI.
-*/
+!*/
 
 use std::{mem, ptr, io};
 

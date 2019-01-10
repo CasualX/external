@@ -2,7 +2,7 @@
 Screenshot test.
 
 Captures the center 256x256 rect of the foreground window.
-*/
+!*/
 
 #![allow(unused_variables)]
 

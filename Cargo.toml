@@ -3,10 +3,27 @@ name = "external"
 version = "0.1.0"
 edition = "2018"
 
+[[example]]
+name = "driverlist"
+required-features = ["ntdll"]
+
 [dependencies.ntdll]
 git = "https://github.com/CasualX/ntdll"
 optional = true
 
 [dependencies.winapi]
 version = "0.3.6"
-features = ["consoleapi", "errhandlingapi", "handleapi", "memoryapi", "processthreadsapi", "synchapi", "tlhelp32", "winbase", "wingdi", "winerror", "winuser"]
+features = [
+	"consoleapi",
+	"errhandlingapi",
+	"handleapi",
+	"memoryapi",
+	"processthreadsapi",
+	"profileapi",
+	"synchapi",
+	"tlhelp32",
+	"winbase",
+	"wingdi",
+	"winerror",
+	"winuser",
+]

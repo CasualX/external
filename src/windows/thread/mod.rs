@@ -1,6 +1,6 @@
 /*!
 Threads.
-*/
+!*/
 
 mod thread_id;
 mod thread_rights;

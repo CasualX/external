@@ -107,7 +107,7 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn typeptr32() {
+	fn ptr32() {
 		let a = Ptr32::<f32>::from(0x2000);
 		let b = a + 0x40;
 		let c = a - 0x40;

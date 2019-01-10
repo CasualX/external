@@ -63,7 +63,7 @@ pub fn my_callback() -> Result<external::hook::Hook, external::error::ErrorCode>
 ```
 
 Register the hook by simply calling the defined function and unwrapping it.
-*/
+!*/
 
 use std::{ptr, panic};
 
