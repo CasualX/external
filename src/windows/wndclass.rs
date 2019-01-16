@@ -1,5 +1,5 @@
 /*!
-*/
+!*/
 
 use std::{ptr, mem, panic};
 

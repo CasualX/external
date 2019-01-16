@@ -1,10 +1,6 @@
-#[macro_use]
-extern crate external;
+use external::wndclass::{pump_once, sleep};
+use external::windows_hook;
 
-use external::wndclass::{pump_once};
-
-use std::time::{Duration};
-use std::thread::{sleep};
 use std::sync::atomic;
 
 static MOUSE_X: atomic::AtomicIsize = atomic::ATOMIC_ISIZE_INIT;
@@ -48,6 +44,6 @@ fn main() {
 	let _hook = analytics().unwrap();
 
 	while pump_once() {
-		sleep(Duration::new(0, 0));
+		sleep(0);
 	}
 }

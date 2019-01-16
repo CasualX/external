@@ -1,6 +1,6 @@
 /*!
 Low level mouse hook details.
-*/
+!*/
 
 use std::{ptr, fmt};
 

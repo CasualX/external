@@ -107,7 +107,7 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn typeptr64() {
+	fn ptr64() {
 		let a = Ptr64::<f64>::from(0x2000);
 		let b = a + 0x40;
 		let c = a - 0x40;

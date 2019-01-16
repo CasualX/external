@@ -1,14 +1,12 @@
 /*!
 Example demonstrating the usage of low level hooks.
-*/
+!*/
 
 #![allow(unused_variables)]
 
-#[macro_use]
-extern crate external;
-
 use external::input::vk;
 use external::wndclass::{pump_once, sleep};
+use external::windows_hook;
 
 // Any communcation has to happen through global mutable state...
 static mut DONE: bool = false;

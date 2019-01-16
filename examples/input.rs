@@ -1,13 +1,12 @@
 /*!
 Playground for detecting and hiding injected input.
-*/
-
-#[macro_use]
-extern crate external;
+!*/
 
 use std::{env, thread, time};
+
 use external::input;
-use external::wndclass::{pump_once};
+use external::wndclass::{pump_once, sleep};
+use external::windows_hook;
 
 fn main() {
 	let mut args = env::args();
@@ -90,6 +89,6 @@ fn hide() {
 
 fn inject() {
 	input::key_down(input::vk::SPACE);
-	thread::sleep(time::Duration::from_millis(100));
+	sleep(100);
 	input::key_up(input::vk::SPACE);
 }
