@@ -3,6 +3,7 @@ use std::ffi::OsString;
 use std::os::windows::ffi::{OsStringExt};
 
 use winapi::um::processthreadsapi::{OpenProcess, GetCurrentProcess, GetProcessId, GetExitCodeProcess, CreateRemoteThread};
+use winapi::um::psapi::{GetMappedFileNameW};
 use winapi::um::winbase::{QueryFullProcessImageNameW, WAIT_FAILED};
 use winapi::um::synchapi::{WaitForSingleObject};
 use winapi::um::handleapi::{DuplicateHandle, CloseHandle};
@@ -88,6 +89,18 @@ impl Process {
 			let mut buf: [WCHAR; 1000] = mem::uninitialized();
 			let mut size = 1000;
 			if QueryFullProcessImageNameW(self.0, 0, buf.as_mut_ptr(), &mut size) != FALSE {
+				Ok(OsString::from_wide(&buf[..size as usize]))
+			}
+			else {
+				Err(ErrorCode::last())
+			}
+		}
+	}
+	pub fn get_mapped_file_name(&self, address: usize) -> Result<OsString> {
+		unsafe {
+			let mut buf = [0u16; 0x200];
+			let size = GetMappedFileNameW(self.0, address as LPVOID, buf.as_mut_ptr(), buf.len() as DWORD);
+			if size != 0 {
 				Ok(OsString::from_wide(&buf[..size as usize]))
 			}
 			else {

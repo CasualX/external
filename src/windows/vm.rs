@@ -318,7 +318,7 @@ impl Process {
 		let size = mem::size_of::<MEMORY_BASIC_INFORMATION>() as SIZE_T;
 		unsafe {
 			let mut mem_basic_info: MemoryInformation = mem::uninitialized();
-			if VirtualQueryEx(*self.as_inner(), address as LPCVOID, &mut mem_basic_info.0, size) != size {
+			if VirtualQueryEx(*self.as_inner(), address as LPCVOID, &mut mem_basic_info.0, size) == size {
 				Ok(mem_basic_info)
 			}
 			else {
