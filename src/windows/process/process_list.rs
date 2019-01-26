@@ -13,6 +13,7 @@ use crate::process::ProcessId;
 #[derive(Clone)]
 pub struct ProcessList(Vec<u8>);
 impl ProcessList {
+	#[inline(never)]
 	pub fn query() -> ProcessList {
 		let mut data = Vec::new();
 		let mut return_length = 0;
