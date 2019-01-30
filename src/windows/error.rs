@@ -13,6 +13,26 @@ use winapi::shared::minwindef::{DWORD};
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct ErrorCode(DWORD);
 impl_inner!(ErrorCode: DWORD);
+impl From<u32> for ErrorCode {
+	fn from(error_code: u32) -> ErrorCode {
+		ErrorCode(error_code)
+	}
+}
+impl From<ErrorCode> for u32 {
+	fn from(error_code: ErrorCode) -> u32 {
+		error_code.0
+	}
+}
+impl AsRef<u32> for ErrorCode {
+	fn as_ref(&self) -> &u32 {
+		&self.0
+	}
+}
+impl AsMut<u32> for ErrorCode {
+	fn as_mut(&mut self) -> &mut u32 {
+		&mut self.0
+	}
+}
 impl ErrorCode {
 	/// Get the last error code.
 	///
