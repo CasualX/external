@@ -20,6 +20,10 @@ impl<T: ?Sized> From<Ptr32<T>> for u32 {
 }
 
 impl<T: ?Sized> Ptr32<T> {
+	/// Constructs a pointer from base and offset.
+	pub fn member(base: u32, offset: u32) -> Ptr32<T> {
+		Ptr32(base + offset, PhantomData)
+	}
 	/// Returns a raw null pointer.
 	pub fn null() -> Ptr32<T> {
 		Ptr32(0, PhantomData)
