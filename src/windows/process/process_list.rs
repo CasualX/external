@@ -2,7 +2,8 @@ use std::{cmp, fmt, mem, slice};
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
 
-use ntdll::*;
+use ntapi::ntexapi::*;
+use winapi::shared::ntdef::{PVOID, ULONG};
 
 use crate::FromInner;
 use crate::thread::ThreadId;
