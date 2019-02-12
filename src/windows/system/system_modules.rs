@@ -1,7 +1,9 @@
 use std::{cmp, fmt, mem, ops, slice};
 use std::path::Path;
 
-use ntdll::*;
+use ntapi::ntexapi::*;
+use ntapi::ntldr::*;
+use winapi::shared::ntdef::{PVOID, ULONG};
 
 use crate::{AsInner, util};
 
