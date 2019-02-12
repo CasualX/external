@@ -20,6 +20,10 @@ impl<T: ?Sized> From<Ptr64<T>> for u64 {
 }
 
 impl<T: ?Sized> Ptr64<T> {
+	/// Constructs a pointer from base and offset.
+	pub fn member(base: u64, offset: u32) -> Ptr64<T> {
+		Ptr64(base + offset as u64, PhantomData)
+	}
 	/// Returns a raw null pointer.
 	pub fn null() -> Ptr64<T> {
 		Ptr64(0, PhantomData)
