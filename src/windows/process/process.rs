@@ -83,25 +83,28 @@ impl Process {
 			}
 		}
 	}
-	/// Get the full name of the executable for this process.
-	pub fn full_image_name(&self) -> Result<OsString> {
+	pub fn full_image_name_wide<'a>(&self, buffer: &'a mut [u16]) -> Result<&'a mut [u16]> {
 		unsafe {
-			let mut buf: [WCHAR; 1000] = mem::uninitialized();
-			let mut size = 1000;
-			if QueryFullProcessImageNameW(self.0, 0, buf.as_mut_ptr(), &mut size) != FALSE {
-				Ok(OsString::from_wide(&buf[..size as usize]))
+			let mut size = buffer.len() as DWORD;
+			if QueryFullProcessImageNameW(self.0, 0, buffer.as_mut_ptr(), &mut size) != FALSE {
+				Ok(buffer.get_unchecked_mut(..size as usize))
 			}
 			else {
 				Err(ErrorCode::last())
 			}
 		}
 	}
-	pub fn get_mapped_file_name(&self, address: usize) -> Result<OsString> {
+	/// Get the full name of the executable for this process.
+	pub fn full_image_name(&self) -> Result<OsString> {
+		let mut buffer: [WCHAR; 0x400] = unsafe { mem::uninitialized() };
+		self.full_image_name_wide(&mut buffer)
+			.map(|path| OsString::from_wide(path))
+	}
+	pub fn get_mapped_file_name_wide<'a>(&self, address: usize, buffer: &'a mut [u16]) -> Result<&'a mut [u16]> {
 		unsafe {
-			let mut buf = [0u16; 0x200];
-			let size = GetMappedFileNameW(self.0, address as LPVOID, buf.as_mut_ptr(), buf.len() as DWORD);
+			let size = GetMappedFileNameW(self.0, address as LPVOID, buffer.as_mut_ptr(), buffer.len() as DWORD);
 			if size != 0 {
-				Ok(OsString::from_wide(&buf[..size as usize]))
+				Ok(buffer.get_unchecked_mut(..size as usize))
 			}
 			else {
 				Err(ErrorCode::last())

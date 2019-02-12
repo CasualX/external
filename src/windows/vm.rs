@@ -2,8 +2,7 @@
 Virtual memory interaction with a process.
 !*/
 
-use std::{ptr, mem};
-use std::ops::Range;
+use std::{ops, ptr, mem};
 
 use winapi::um::memoryapi::{ReadProcessMemory, WriteProcessMemory, VirtualAllocEx, VirtualFreeEx, VirtualProtectEx, VirtualQueryEx};
 use winapi::um::winnt::{MEMORY_BASIC_INFORMATION};
@@ -77,6 +76,22 @@ impl AllocType {
 
 pub struct MemoryInformation(MEMORY_BASIC_INFORMATION);
 impl_inner!(MemoryInformation: MEMORY_BASIC_INFORMATION);
+impl ops::Deref for MemoryInformation {
+	type Target = MEMORY_BASIC_INFORMATION;
+	fn deref(&self) -> &MEMORY_BASIC_INFORMATION {
+		&self.0
+	}
+}
+
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
+pub struct ForEachAllocation {
+	pub allocation_base: usize,
+	pub allocation_size: usize,
+	pub allocation_protect: u32,
+	pub regions_state: u32,
+	pub regions_protect: u32,
+	pub regions_type: u32,
+}
 
 //----------------------------------------------------------------
 
@@ -230,7 +245,7 @@ impl Process {
 	/// Writes a sub range of the Pod `T` to the process.
 	/// Panics if the range falls outside the bytes of the given value.
 	#[inline]
-	pub fn vm_write_range<T: Pod>(&self, ptr: Ptr<T>, val: &T, range: Range<usize>) -> Result<()> {
+	pub fn vm_write_range<T: Pod>(&self, ptr: Ptr<T>, val: &T, range: ops::Range<usize>) -> Result<()> {
 		let address = ptr.into_raw() as usize + range.start;
 		let val = &val.as_bytes()[range];
 		self.vm_write_bytes(address, val)
@@ -324,6 +339,55 @@ impl Process {
 			else {
 				Err(ErrorCode::last())
 			}
+		}
+	}
+	/// Foreach virtual memory region in the specified address range.
+	#[inline]
+	pub fn vm_regions<F: FnMut(&MemoryInformation)>(&self, mut base_address: usize, size: usize, mut f: F) -> Result<()> {
+		let end_address = base_address + size;
+		while base_address < end_address {
+			let mi = self.vm_query(base_address)?;
+			f(&mi);
+			base_address += mi.RegionSize;
+		}
+		Ok(())
+	}
+	/// Foreach virtual memory allocation and associated mapped filename.
+	#[inline]
+	pub fn vm_allocations<F: FnMut(&ForEachAllocation, Option<&[u16]>)>(&self, mut f: F) -> Result<()> {
+		let mut base_address = 0;
+		let mut allocation_base = 0;
+		let mut allocation_size = 0;
+		let mut allocation_protect = 0;
+		let mut regions_state = 0;
+		let mut regions_protect = 0;
+		let mut regions_type = 0;
+		let mut mapped_file_name = vec![0u16; 0x200];
+		loop {
+			let mi = self.vm_query(base_address)?;
+			if mi.AllocationBase as usize != allocation_base {
+				let path = self.get_mapped_file_name_wide(allocation_base, &mut mapped_file_name)
+					.ok().map(|path| &*path);
+				f(&ForEachAllocation {
+					allocation_base,
+					allocation_size,
+					allocation_protect,
+					regions_state,
+					regions_protect,
+					regions_type,
+				}, path);
+				allocation_base = mi.AllocationBase as usize;
+				allocation_size = 0;
+				allocation_protect = mi.AllocationProtect;
+				regions_state = 0;
+				regions_protect = 0;
+				regions_type = 0;
+			}
+			allocation_size += mi.RegionSize;
+			regions_state |= mi.State;
+			regions_protect |= mi.Protect;
+			regions_type |= mi.Type;
+			base_address += mi.RegionSize;
 		}
 	}
 }
