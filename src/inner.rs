@@ -34,16 +34,16 @@ pub trait FromInner<T> {
 /// Quickly implement The `*Inner` traits for a newtype wrapper.
 macro_rules! impl_inner {
 	($ty:path: $inner:ty) => {
-		impl $crate::inner::AsInner<$inner> for $ty {
+		impl $crate::AsInner<$inner> for $ty {
 			fn as_inner(&self) -> &$inner { &self.0 }
 		}
-		impl $crate::inner::AsInnerMut<$inner> for $ty {
+		impl $crate::AsInnerMut<$inner> for $ty {
 			unsafe fn as_inner_mut(&mut self) -> &mut $inner { &mut self.0 }
 		}
-		impl $crate::inner::IntoInner<$inner> for $ty {
+		impl $crate::IntoInner<$inner> for $ty {
 			fn into_inner(self) -> $inner { self.0 }
 		}
-		impl $crate::inner::FromInner<$inner> for $ty {
+		impl $crate::FromInner<$inner> for $ty {
 			unsafe fn from_inner(inner: $inner) -> $ty { $ty(inner) }
 		}
 	}
