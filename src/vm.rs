@@ -333,6 +333,21 @@ impl Process {
 			}
 		}
 	}
+	/// Queries the working set ex of virtual memory in the process.
+	#[inline]
+	pub fn vm_query_ws_ex(&self, address: usize) -> Result<PSAPI_WORKING_SET_EX_BLOCK> {
+		let size = mem::size_of::<PSAPI_WORKING_SET_EX_INFORMATION>() as DWORD;
+		unsafe {
+			let mut buffer: PSAPI_WORKING_SET_EX_INFORMATION = mem::zeroed();
+			buffer.VirtualAddress = address as PVOID;
+			if K32QueryWorkingSetEx(*self.as_inner(), &mut buffer as *mut _ as PVOID, size) != 0 {
+				Ok(buffer.VirtualAttributes)
+			}
+			else {
+				Err(ErrorCode::last())
+			}
+		}
+	}
 	/// Foreach virtual memory region in the specified address range.
 	#[inline]
 	pub fn vm_regions<F: FnMut(&MemoryInformation)>(&self, mut base_address: usize, size: usize, mut f: F) -> Result<()> {
