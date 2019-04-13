@@ -47,6 +47,8 @@ pub type Ptr<T> = Ptr32<T>;
 mod pod;
 pub use self::pod::Pod;
 
+mod layout;
+
 impl<T: ?Sized> From<Ptr32<T>> for Ptr64<T> {
 	fn from(ptr: Ptr32<T>) -> Ptr64<T> {
 		Ptr64::from(ptr.into_raw() as u64)
