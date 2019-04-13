@@ -2,7 +2,7 @@
 Virtual memory interaction with a process.
 !*/
 
-use std::{ops, ptr, mem};
+use std::{fmt, ops, ptr, mem};
 use crate::winapi::*;
 use crate::process::Process;
 use crate::error::ErrorCode;
@@ -12,7 +12,7 @@ use crate::{Result, AsInner, IntoInner, FromInner};
 //----------------------------------------------------------------
 
 /// Memory protection type.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Protect(u32);
 impl_inner!(Protect: u32);
 impl Protect {
@@ -41,6 +41,17 @@ impl Protect {
 		else {
 			Protect(self.0 & !PAGE_GUARD)
 		}
+	}
+}
+impl fmt::Debug for Protect {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		f.debug_struct("Protect")
+			.field("flags", &format_args!("{:#x}", self.0))
+			.field("is_executable", &self.is_executable())
+			.field("is_readable", &self.is_readable())
+			.field("is_writable", &self.is_writable())
+			.field("has_guard", &self.has_guard())
+			.finish()
 	}
 }
 
@@ -83,6 +94,55 @@ pub struct ForEachAllocation {
 	pub regions_state: u32,
 	pub regions_protect: u32,
 	pub regions_type: u32,
+}
+
+#[derive(Copy, Clone, Default)]
+pub struct WorkingSetExBlock(usize);
+impl_inner!(WorkingSetExBlock: usize);
+impl From<PSAPI_WORKING_SET_EX_BLOCK> for WorkingSetExBlock {
+	fn from(ws_ex_block: PSAPI_WORKING_SET_EX_BLOCK) -> WorkingSetExBlock {
+		WorkingSetExBlock(ws_ex_block.Flags)
+	}
+}
+impl WorkingSetExBlock {
+	pub fn valid(&self) -> bool {
+		self.0 & 1 != 0
+	}
+	pub fn share_count(&self) -> u32 {
+		((self.0 >> 1) & 0x7) as u32
+	}
+	pub fn win32_protection(&self) -> Protect {
+		unsafe { Protect::from_inner((self.0 >> 4) as u32) }
+	}
+	pub fn shared(&self) -> bool {
+		self.0 & (1 << 15) != 0
+	}
+	pub fn node(&self) -> u32 {
+		((self.0 >> 16) & 0x3f) as u32
+	}
+	pub fn locked(&self) -> bool {
+		self.0 & (1 << 22) != 0
+	}
+	pub fn large_page(&self) -> bool {
+		self.0 & (1 << 23) != 0
+	}
+	pub fn bad(&self) -> bool {
+		self.0 & (1 << 31) != 0
+	}
+}
+impl fmt::Debug for WorkingSetExBlock {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		f.debug_struct("WorkingSetExBlock")
+			.field("valid", &self.valid())
+			.field("share_count", &self.share_count())
+			.field("win32_protection", &self.win32_protection())
+			.field("shared", &self.shared())
+			.field("node", &self.node())
+			.field("locked", &self.locked())
+			.field("large_page", &self.large_page())
+			.field("bad", &self.bad())
+			.finish()
+	}
 }
 
 //----------------------------------------------------------------
@@ -335,13 +395,13 @@ impl Process {
 	}
 	/// Queries the working set ex of virtual memory in the process.
 	#[inline]
-	pub fn vm_query_ws_ex(&self, address: usize) -> Result<PSAPI_WORKING_SET_EX_BLOCK> {
+	pub fn vm_query_ws_ex(&self, address: usize) -> Result<WorkingSetExBlock> {
 		let size = mem::size_of::<PSAPI_WORKING_SET_EX_INFORMATION>() as DWORD;
 		unsafe {
 			let mut buffer: PSAPI_WORKING_SET_EX_INFORMATION = mem::zeroed();
 			buffer.VirtualAddress = address as PVOID;
 			if K32QueryWorkingSetEx(*self.as_inner(), &mut buffer as *mut _ as PVOID, size) != 0 {
-				Ok(buffer.VirtualAttributes)
+				Ok(WorkingSetExBlock::from(buffer.VirtualAttributes))
 			}
 			else {
 				Err(ErrorCode::last())
