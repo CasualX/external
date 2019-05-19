@@ -7,7 +7,7 @@ use crate::winapi::*;
 /// Windows virtual key code.
 ///
 /// See [Virtual-Key Codes](https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731.aspx) for more information.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
 pub struct VirtualKey(u8);
 impl From<DWORD> for VirtualKey {
 	fn from(vkey: DWORD) -> VirtualKey {
@@ -17,6 +17,11 @@ impl From<DWORD> for VirtualKey {
 impl From<c_int> for VirtualKey {
 	fn from(vkey: c_int) -> VirtualKey {
 		VirtualKey(vkey as u8)
+	}
+}
+impl From<BYTE> for VirtualKey {
+	fn from(vkey: BYTE) -> VirtualKey {
+		VirtualKey(vkey)
 	}
 }
 impl From<VirtualKey> for DWORD {
@@ -29,8 +34,24 @@ impl From<VirtualKey> for BYTE {
 		vkey.0 as BYTE
 	}
 }
+impl VirtualKey {
+	/// Is this the `NONE` key.
+	pub fn is_none(self) -> bool {
+		self.0 == 0
+	}
+	/// Is this a mouse button.
+	pub fn is_mouse(self) -> bool {
+		self.0 < 32 && (1 << self.0 as u32) & 0x76 != 0
+	}
+	/// Is this a keyboard key.
+	pub fn is_keybd(self) -> bool {
+		!(self.0 < 32 && (1 << self.0 as u32) & 0x77 != 0)
+	}
+}
 /// VirtualKey constants.
 impl VirtualKey {
+	pub const NONE: VirtualKey = VirtualKey(0);
+
 	pub const LBUTTON: VirtualKey = VirtualKey(winapi::um::winuser::VK_LBUTTON as u8);
 	pub const RBUTTON: VirtualKey = VirtualKey(winapi::um::winuser::VK_RBUTTON as u8);
 	pub const CANCEL: VirtualKey = VirtualKey(winapi::um::winuser::VK_CANCEL as u8);
@@ -64,36 +85,53 @@ impl VirtualKey {
 
 	//pub const : VirtualKey = VirtualKey(winapi::um::winuser::VK_ as u8);
 }
-
-//----------------------------------------------------------------
-
-/// Press a virtual key.
-pub fn key_down(vkey: VirtualKey) {
-	key_send(vkey, false);
-}
-/// Release a virtual key.
-pub fn key_up(vkey: VirtualKey) {
-	key_send(vkey, true);
-}
-
-fn key_send(vkey: VirtualKey, up: bool) {
-	unsafe {
-		match vkey {
-			VirtualKey::LBUTTON => mouse_event(if up { MOUSEEVENTF_LEFTUP } else { MOUSEEVENTF_LEFTDOWN }, 0, 0, 0, 0),
-			VirtualKey::RBUTTON => mouse_event(if up { MOUSEEVENTF_RIGHTUP } else { MOUSEEVENTF_RIGHTDOWN }, 0, 0, 0, 0),
-			VirtualKey::MBUTTON => mouse_event(if up { MOUSEEVENTF_MIDDLEUP } else { MOUSEEVENTF_MIDDLEDOWN }, 0, 0, 0, 0),
-			VirtualKey::XBUTTON1 => mouse_event(if up { MOUSEEVENTF_XUP } else { MOUSEEVENTF_XDOWN }, 0, 0, XBUTTON1 as DWORD, 0),
-			VirtualKey::XBUTTON2 => mouse_event(if up { MOUSEEVENTF_XUP } else { MOUSEEVENTF_XDOWN }, 0, 0, XBUTTON2 as DWORD, 0),
-			vkey => keybd_event(vkey.into(), MapVirtualKeyW(vkey.into(), MAPVK_VK_TO_VSC) as BYTE, if up { KEYEVENTF_KEYUP } else { 0 }, 0),
+impl VirtualKey {
+	/// Press a virtual key.
+	pub fn down(self) {
+		self.send(false);
+	}
+	/// Release a virtual key.
+	pub fn up(self) {
+		self.send(true);
+	}
+	fn send(self, up: bool) {
+		unsafe {
+			match self {
+				VirtualKey::LBUTTON => mouse_event(if up { MOUSEEVENTF_LEFTUP } else { MOUSEEVENTF_LEFTDOWN }, 0, 0, 0, 0),
+				VirtualKey::RBUTTON => mouse_event(if up { MOUSEEVENTF_RIGHTUP } else { MOUSEEVENTF_RIGHTDOWN }, 0, 0, 0, 0),
+				VirtualKey::MBUTTON => mouse_event(if up { MOUSEEVENTF_MIDDLEUP } else { MOUSEEVENTF_MIDDLEDOWN }, 0, 0, 0, 0),
+				VirtualKey::XBUTTON1 => mouse_event(if up { MOUSEEVENTF_XUP } else { MOUSEEVENTF_XDOWN }, 0, 0, XBUTTON1 as DWORD, 0),
+				VirtualKey::XBUTTON2 => mouse_event(if up { MOUSEEVENTF_XUP } else { MOUSEEVENTF_XDOWN }, 0, 0, XBUTTON2 as DWORD, 0),
+				vkey => keybd_event(vkey.into(), MapVirtualKeyW(vkey.into(), MAPVK_VK_TO_VSC) as BYTE, if up { KEYEVENTF_KEYUP } else { 0 }, 0),
+			}
+		}
+	}
+	/// Gets the async key state.
+	pub fn async_state(self) -> bool {
+		unsafe {
+			(GetAsyncKeyState(self.0 as i32) as u16 & 0x8000) != 0
 		}
 	}
 }
 
-pub fn async_key_state(vkey: VirtualKey) -> bool {
-	unsafe {
-		(GetAsyncKeyState(vkey.0 as i32) as u16 & 0x8000) != 0
-	}
+#[test]
+fn test_key_types() {
+	assert!(VirtualKey::NONE.is_none());
+	assert!(!VirtualKey::NONE.is_mouse());
+	assert!(VirtualKey::LBUTTON.is_mouse());
+	assert!(VirtualKey::RBUTTON.is_mouse());
+	assert!(VirtualKey::MBUTTON.is_mouse());
+	assert!(VirtualKey::XBUTTON1.is_mouse());
+	assert!(VirtualKey::XBUTTON2.is_mouse());
+	assert!(!VirtualKey::NONE.is_keybd());
+	assert!(!VirtualKey::LBUTTON.is_keybd());
+	assert!(!VirtualKey::RBUTTON.is_keybd());
+	assert!(!VirtualKey::MBUTTON.is_keybd());
+	assert!(!VirtualKey::XBUTTON1.is_keybd());
+	assert!(!VirtualKey::XBUTTON2.is_keybd());
 }
+
+//----------------------------------------------------------------
 
 /// Move the mouse relatively.
 pub fn mouse_move(dx: i32, dy: i32) {

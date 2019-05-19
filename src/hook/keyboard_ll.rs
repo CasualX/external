@@ -148,7 +148,7 @@ pub trait CallKeyboardLL: Invoke {
 #[cfg(test)]
 mod tests {
 	use crate::wndclass::{pump_once};
-	use crate::input::{VirtualKey, key_down, key_up};
+	use crate::input::{VirtualKey};
 
 	#[test]
 	fn test_keyboard_ll() {
@@ -162,8 +162,8 @@ mod tests {
 			}
 		}
 		let hook = my_callback().unwrap();
-		key_down(VirtualKey::SPACE);
-		key_up(VirtualKey::SPACE);
+		VirtualKey::SPACE.down();
+		VirtualKey::SPACE.up();
 		pump_once();
 		unsafe { assert_eq!(PRESSED, true); }
 		drop(hook);
