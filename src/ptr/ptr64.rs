@@ -4,7 +4,7 @@ use super::Pod;
 
 /// 64bit Typed Pointer.
 #[repr(C)]
-pub struct Ptr64<T: ?Sized>(u64, PhantomData<fn() -> T>);
+pub struct Ptr64<T: ?Sized = ()>(u64, PhantomData<fn() -> T>);
 
 impl<T: ?Sized> From<u64> for Ptr64<T> {
 	fn from(addr: u64) -> Ptr64<T> {
@@ -18,10 +18,6 @@ impl<T: ?Sized> From<Ptr64<T>> for u64 {
 }
 
 impl<T: ?Sized> Ptr64<T> {
-	/// Constructs a pointer from base and offset.
-	pub fn member(base: u64, offset: u32) -> Ptr64<T> {
-		Ptr64(base + offset as u64, PhantomData)
-	}
 	/// Returns a raw null pointer.
 	pub fn null() -> Ptr64<T> {
 		Ptr64(0, PhantomData)
@@ -29,6 +25,21 @@ impl<T: ?Sized> Ptr64<T> {
 	/// Returns if the pointer is the null pointer.
 	pub fn is_null(self) -> bool {
 		self.0 == 0
+	}
+	/// Constructs a pointer from base and offset.
+	pub fn member(base: u64, offset: u32) -> Ptr64<T> {
+		Ptr64(base + offset as u64, PhantomData)
+	}
+	/// Casts the pointer to a different type keeping the pointer address fixed.
+	pub fn cast<U: ?Sized>(self) -> Ptr64<U> {
+		Ptr64(self.0, PhantomData)
+	}
+	/// Offsets and casts the pointer.
+	///
+	/// Because the type of the current and the target may be unrelated, this is a byte offset.
+	pub fn offset<U: ?Sized>(self, offset: i64) -> Ptr64<U> {
+		let addr = self.0.wrapping_add(offset as u64);
+		Ptr64(addr, PhantomData)
 	}
 	/// Converts to a raw integer value.
 	pub fn into_raw(self) -> u64 {
@@ -96,6 +107,12 @@ impl<T: ?Sized> Eq for Ptr64<T> {}
 impl<T: ?Sized> Ord for Ptr64<T> {
 	fn cmp(&self, rhs: &Ptr64<T>) -> cmp::Ordering {
 		self.0.cmp(&rhs.0)
+	}
+}
+#[cfg(feature = "serde")]
+impl<T: ?Sized> serde::Serialize for Ptr64<T> {
+	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		serializer.serialize_newtype_struct("Ptr64", &self.0)
 	}
 }
 
