@@ -88,7 +88,7 @@ fn hide() {
 // Inject space input
 
 fn inject() {
-	input::key_down(input::vk::SPACE);
+	input::key_down(input::VirtualKey::SPACE);
 	sleep(100);
-	input::key_up(input::vk::SPACE);
+	input::key_up(input::VirtualKey::SPACE);
 }

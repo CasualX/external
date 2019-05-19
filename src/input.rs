@@ -30,11 +30,7 @@ impl From<VirtualKey> for BYTE {
 	}
 }
 /// VirtualKey constants.
-///
-/// Whofully incomplete, please finish me...
-pub mod vk {
-	use super::VirtualKey;
-
+impl VirtualKey {
 	pub const LBUTTON: VirtualKey = VirtualKey(winapi::um::winuser::VK_LBUTTON as u8);
 	pub const RBUTTON: VirtualKey = VirtualKey(winapi::um::winuser::VK_RBUTTON as u8);
 	pub const CANCEL: VirtualKey = VirtualKey(winapi::um::winuser::VK_CANCEL as u8);
@@ -82,24 +78,13 @@ pub fn key_up(vkey: VirtualKey) {
 
 fn key_send(vkey: VirtualKey, up: bool) {
 	unsafe {
-		if vkey == vk::LBUTTON {
-			mouse_event(if up { MOUSEEVENTF_LEFTUP } else { MOUSEEVENTF_LEFTDOWN }, 0, 0, 0, 0);
-		}
-		else if vkey == vk::RBUTTON {
-			mouse_event(if up { MOUSEEVENTF_RIGHTUP } else { MOUSEEVENTF_RIGHTDOWN }, 0, 0, 0, 0);
-		}
-		else if vkey == vk::MBUTTON {
-			mouse_event(if up { MOUSEEVENTF_MIDDLEUP } else { MOUSEEVENTF_MIDDLEDOWN }, 0, 0, 0, 0);
-		}
-		else if vkey == vk::XBUTTON1 {
-			mouse_event(if up { MOUSEEVENTF_XUP } else { MOUSEEVENTF_XDOWN }, 0, 0, XBUTTON1 as DWORD, 0);
-		}
-		else if vkey == vk::XBUTTON2 {
-			mouse_event(if up { MOUSEEVENTF_XUP } else { MOUSEEVENTF_XDOWN }, 0, 0, XBUTTON2 as DWORD, 0);
-		}
-		else {
-			let scan_code = MapVirtualKeyW(vkey.into(), MAPVK_VK_TO_VSC);
-			keybd_event(vkey.into(), scan_code as BYTE, if up { KEYEVENTF_KEYUP } else { 0 }, 0);
+		match vkey {
+			VirtualKey::LBUTTON => mouse_event(if up { MOUSEEVENTF_LEFTUP } else { MOUSEEVENTF_LEFTDOWN }, 0, 0, 0, 0),
+			VirtualKey::RBUTTON => mouse_event(if up { MOUSEEVENTF_RIGHTUP } else { MOUSEEVENTF_RIGHTDOWN }, 0, 0, 0, 0),
+			VirtualKey::MBUTTON => mouse_event(if up { MOUSEEVENTF_MIDDLEUP } else { MOUSEEVENTF_MIDDLEDOWN }, 0, 0, 0, 0),
+			VirtualKey::XBUTTON1 => mouse_event(if up { MOUSEEVENTF_XUP } else { MOUSEEVENTF_XDOWN }, 0, 0, XBUTTON1 as DWORD, 0),
+			VirtualKey::XBUTTON2 => mouse_event(if up { MOUSEEVENTF_XUP } else { MOUSEEVENTF_XDOWN }, 0, 0, XBUTTON2 as DWORD, 0),
+			vkey => keybd_event(vkey.into(), MapVirtualKeyW(vkey.into(), MAPVK_VK_TO_VSC) as BYTE, if up { KEYEVENTF_KEYUP } else { 0 }, 0),
 		}
 	}
 }
