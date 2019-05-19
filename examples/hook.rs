@@ -4,7 +4,7 @@ Example demonstrating the usage of low level hooks.
 
 #![allow(unused_variables)]
 
-use external::input::vk;
+use external::input::VirtualKey;
 use external::wndclass::{pump_once, sleep};
 use external::windows_hook;
 
@@ -13,7 +13,7 @@ static mut DONE: bool = false;
 
 windows_hook! {
 	pub fn keybd_hook(context: &mut KeyboardLL) {
-		if context.vk_code() == vk::RETURN {
+		if context.vk_code() == VirtualKey::RETURN {
 			unsafe { DONE = true; }
 		}
 		else {

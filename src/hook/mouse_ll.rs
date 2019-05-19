@@ -5,7 +5,7 @@ Low level mouse hook details.
 use std::{ptr, fmt};
 use crate::winapi::*;
 use crate::error::ErrorCode;
-use crate::input::{vk, VirtualKey};
+use crate::input::VirtualKey;
 use super::{Context, Invoke, Hook};
 
 //----------------------------------------------------------------
@@ -63,14 +63,14 @@ impl MouseLL {
 	pub fn mouse_data(&self) -> MouseData {
 		match self.0.wParam as UINT {
 			WM_MOUSEMOVE => MouseData::Move,
-			WM_LBUTTONDOWN => MouseData::ButtonDown(vk::LBUTTON),
-			WM_LBUTTONUP => MouseData::ButtonUp(vk::LBUTTON),
-			WM_RBUTTONDOWN => MouseData::ButtonDown(vk::RBUTTON),
-			WM_RBUTTONUP => MouseData::ButtonUp(vk::RBUTTON),
+			WM_LBUTTONDOWN => MouseData::ButtonDown(VirtualKey::LBUTTON),
+			WM_LBUTTONUP => MouseData::ButtonUp(VirtualKey::LBUTTON),
+			WM_RBUTTONDOWN => MouseData::ButtonDown(VirtualKey::RBUTTON),
+			WM_RBUTTONUP => MouseData::ButtonUp(VirtualKey::RBUTTON),
 			message @ WM_XBUTTONDOWN ... WM_XBUTTONUP => {
 				let vk = match (self.info().mouseData >> 16) as u16 {
-					XBUTTON1 => vk::XBUTTON1,
-					XBUTTON2 => vk::XBUTTON2,
+					XBUTTON1 => VirtualKey::XBUTTON1,
+					XBUTTON2 => VirtualKey::XBUTTON2,
 					button => panic!("unknown xbutton: {}", button),
 				};
 				if message == WM_XBUTTONDOWN {

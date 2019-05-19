@@ -148,7 +148,7 @@ pub trait CallKeyboardLL: Invoke {
 #[cfg(test)]
 mod tests {
 	use crate::wndclass::{pump_once};
-	use crate::input::{vk, key_down, key_up};
+	use crate::input::{VirtualKey, key_down, key_up};
 
 	#[test]
 	fn test_keyboard_ll() {
@@ -156,14 +156,14 @@ mod tests {
 		windows_hook! {
 			pub fn my_callback(context: &mut KeyboardLL) {
 				println!("{:#?}", context);
-				if context.vk_code() == vk::SPACE {
+				if context.vk_code() == VirtualKey::SPACE {
 					unsafe { PRESSED = true; }
 				}
 			}
 		}
 		let hook = my_callback().unwrap();
-		key_down(vk::SPACE);
-		key_up(vk::SPACE);
+		key_down(VirtualKey::SPACE);
+		key_up(VirtualKey::SPACE);
 		pump_once();
 		unsafe { assert_eq!(PRESSED, true); }
 		drop(hook);
