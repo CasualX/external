@@ -5,7 +5,7 @@ Low level keyboard hook details.
 use std::{ptr, fmt};
 use crate::winapi::*;
 use crate::error::ErrorCode;
-use crate::input::VirtualKey;
+use crate::vk::VirtualKey;
 use super::{Context, Invoke, Hook};
 
 //----------------------------------------------------------------
@@ -148,7 +148,7 @@ pub trait CallKeyboardLL: Invoke {
 #[cfg(test)]
 mod tests {
 	use crate::wndclass::{pump_once};
-	use crate::input::{VirtualKey};
+	use crate::vk::{VirtualKey};
 
 	#[test]
 	fn test_keyboard_ll() {

@@ -4,7 +4,7 @@ Example demonstrating the usage of low level hooks.
 
 #![allow(unused_variables)]
 
-use external::input::VirtualKey;
+use external::vk::VirtualKey;
 use external::wndclass::{pump_once, sleep};
 use external::windows_hook;
 
