@@ -4,7 +4,7 @@ Playground for detecting and hiding injected input.
 
 use std::{env, thread, time};
 
-use external::input;
+use external::vk::VirtualKey;
 use external::wndclass::{pump_once, sleep};
 use external::windows_hook;
 
@@ -88,7 +88,7 @@ fn hide() {
 // Inject space input
 
 fn inject() {
-	input::VirtualKey::SPACE.down();
+	VirtualKey::SPACE.down();
 	sleep(100);
-	input::VirtualKey::SPACE.up();
+	VirtualKey::SPACE.up();
 }

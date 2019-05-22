@@ -6,6 +6,7 @@ use external::wndclass::{pump_once};
 use external::windows_hook;
 use external::system::time_s;
 use external::wndclass::sleep;
+use external::mouse::MouseInput;
 
 // Uninitialized mouse coordinate value.
 const PT_UNINIT: i32 = 0x80000000u32 as i32;
@@ -46,7 +47,7 @@ fn main() {
 		let mut dx = 1;
 		loop {
 			dx = -dx;
-			external::input::mouse_move(dx, 0);
+			MouseInput::mouse_move(dx, 0).send();
 			sleep(1);
 		}
 	});

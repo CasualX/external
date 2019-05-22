@@ -1,10 +1,11 @@
 use external::wndclass::{pump_once, sleep};
 use external::windows_hook;
+use external::mouse::MouseInput;
 
 use std::sync::atomic;
 
-static MOUSE_X: atomic::AtomicIsize = atomic::ATOMIC_ISIZE_INIT;
-static MOUSE_Y: atomic::AtomicIsize = atomic::ATOMIC_ISIZE_INIT;
+static MOUSE_X: atomic::AtomicI32 = atomic::AtomicI32::new(0);
+static MOUSE_Y: atomic::AtomicI32 = atomic::AtomicI32::new(0);
 
 unsafe fn mouse_move(context: &mut external::hook::MouseLL) {
 	match context.mouse_data() {
@@ -12,16 +13,16 @@ unsafe fn mouse_move(context: &mut external::hook::MouseLL) {
 			if context.injected() || context.lower_il_injected() {
 				context.clear_injected();
 				context.clear_lower_il_injected();
-				MOUSE_X.store(context.pt_x() as isize, atomic::Ordering::SeqCst);
-				MOUSE_Y.store(context.pt_y() as isize, atomic::Ordering::SeqCst);
+				MOUSE_X.store(context.pt_x(), atomic::Ordering::SeqCst);
+				MOUSE_Y.store(context.pt_y(), atomic::Ordering::SeqCst);
 			}
 			else {
-				let oldx = MOUSE_X.swap(context.pt_x() as isize, atomic::Ordering::SeqCst);
-				let oldy = MOUSE_Y.swap(context.pt_y() as isize, atomic::Ordering::SeqCst);
+				let oldx = MOUSE_X.swap(context.pt_x(), atomic::Ordering::SeqCst);
+				let oldy = MOUSE_Y.swap(context.pt_y(), atomic::Ordering::SeqCst);
 				if oldx != 0 && oldy != 0 {
-					let dx = context.pt_x() as isize - oldx;
-					let dy = context.pt_y() as isize - oldy;
-					external::input::mouse_move(dx as i32, dy as i32);
+					let dx = context.pt_x() - oldx;
+					let dy = context.pt_y() - oldy;
+					MouseInput::mouse_move(dx, dy).send();
 					print!("\rdx:{} dy:{}                  ", dx, dy);
 					context.cancel();
 				}

@@ -145,6 +145,7 @@ impl fmt::Debug for ModuleDataEntry {
 
 //----------------------------------------------------------------
 
+/*
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -156,3 +157,4 @@ mod tests {
 		}
 	}
 }
+*/
