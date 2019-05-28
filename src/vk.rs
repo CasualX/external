@@ -9,6 +9,7 @@ use crate::winapi::*;
 /// See [Virtual-Key Codes](https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731.aspx) for more information.
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
 pub struct VirtualKey(u8);
+impl_inner!(VirtualKey: safe u8);
 impl From<DWORD> for VirtualKey {
 	fn from(vkey: DWORD) -> VirtualKey {
 		VirtualKey(vkey as u8)
@@ -19,19 +20,9 @@ impl From<c_int> for VirtualKey {
 		VirtualKey(vkey as u8)
 	}
 }
-impl From<BYTE> for VirtualKey {
-	fn from(vkey: BYTE) -> VirtualKey {
-		VirtualKey(vkey)
-	}
-}
 impl From<VirtualKey> for DWORD {
 	fn from(vkey: VirtualKey) -> DWORD {
 		vkey.0 as DWORD
-	}
-}
-impl From<VirtualKey> for BYTE {
-	fn from(vkey: VirtualKey) -> BYTE {
-		vkey.0 as BYTE
 	}
 }
 impl VirtualKey {
@@ -369,4 +360,26 @@ fn test_vk_scan_codes() {
 		let vk = VirtualKey::from_scan_code(scan_code as u8);
 		println!("{:#x} {:?} = {}", vk.0, vk, vk);
 	}
+}
+
+#[test]
+#[ignore]
+fn print_table() {
+	let mut string = String::new();
+	let mut indices = [0u16; 256];
+	let mut start = 0;
+	for i in 0..256 {
+		let vk = VirtualKey(i as u8);
+		if let Some(vk_str) = vk.to_str() {
+			string.push_str(vk_str);
+			start = string.len() as u16;
+		}
+		indices[i] = start;
+	}
+	println!("let string = {:?};", string);
+	print!("let indices = &[0");
+	for idx in &indices[..] {
+		print!(",{}", idx);
+	}
+	println!("];");
 }

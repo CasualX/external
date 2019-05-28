@@ -33,6 +33,7 @@ use crate::Result;
 /// The type of control signal received by the handler.
 ///
 /// See [HandlerRoutine callback function](https://msdn.microsoft.com/en-us/library/windows/desktop/ms683242.aspx) for more information.
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum CtrlEvent {
 	C,
 	Break,

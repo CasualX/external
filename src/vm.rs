@@ -14,7 +14,7 @@ use crate::{Result, AsInner, IntoInner, FromInner};
 /// Memory protection type.
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Protect(u32);
-impl_inner!(Protect: u32);
+impl_inner!(Protect: safe u32);
 impl Protect {
 	pub const EXECUTE: Protect = Protect(PAGE_EXECUTE);
 	pub const EXECUTE_READ: Protect = Protect(PAGE_EXECUTE_READ);
@@ -22,16 +22,16 @@ impl Protect {
 	pub const NO_ACCESS: Protect = Protect(PAGE_NOACCESS);
 	pub const READ_ONLY: Protect = Protect(PAGE_READONLY);
 	pub const READ_WRITE: Protect = Protect(PAGE_READWRITE);
-	pub fn is_executable(self) -> bool {
+	pub const fn is_executable(self) -> bool {
 		self.0 & (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY) != 0
 	}
-	pub fn is_readable(self) -> bool {
+	pub const fn is_readable(self) -> bool {
 		self.0 & (PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY | PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY) != 0
 	}
-	pub fn is_writable(self) -> bool {
+	pub const fn is_writable(self) -> bool {
 		self.0 & (PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY | PAGE_READWRITE | PAGE_WRITECOPY) != 0
 	}
-	pub fn has_guard(self) -> bool {
+	pub const fn has_guard(self) -> bool {
 		self.0 & (PAGE_GUARD) != 0
 	}
 	pub fn set_guard(self, value: bool) -> Protect {
@@ -60,7 +60,7 @@ impl fmt::Debug for Protect {
 /// Free type for virtual memory.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct FreeType(u32);
-impl_inner!(FreeType: u32);
+impl_inner!(FreeType: safe u32);
 impl FreeType {
 	pub const DECOMMIT: FreeType = FreeType(MEM_DECOMMIT);
 	pub const RELEASE: FreeType = FreeType(MEM_RELEASE);
@@ -69,7 +69,7 @@ impl FreeType {
 /// Allocation type for virtual memory.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct AllocType(u32);
-impl_inner!(AllocType: u32);
+impl_inner!(AllocType: safe u32);
 impl AllocType {
 	pub const COMMIT: AllocType = AllocType(MEM_COMMIT);
 	pub const RESERVE: AllocType = AllocType(MEM_RESERVE);
@@ -105,28 +105,28 @@ impl From<PSAPI_WORKING_SET_EX_BLOCK> for WorkingSetExBlock {
 	}
 }
 impl WorkingSetExBlock {
-	pub fn valid(&self) -> bool {
+	pub const fn valid(&self) -> bool {
 		self.0 & 1 != 0
 	}
-	pub fn share_count(&self) -> u32 {
+	pub const fn share_count(&self) -> u32 {
 		((self.0 >> 1) & 0x7) as u32
 	}
-	pub fn win32_protection(&self) -> Protect {
-		unsafe { Protect::from_inner((self.0 >> 4) as u32) }
+	pub const fn win32_protection(&self) -> Protect {
+		Protect((self.0 >> 4) as u32)
 	}
-	pub fn shared(&self) -> bool {
+	pub const fn shared(&self) -> bool {
 		self.0 & (1 << 15) != 0
 	}
-	pub fn node(&self) -> u32 {
+	pub const fn node(&self) -> u32 {
 		((self.0 >> 16) & 0x3f) as u32
 	}
-	pub fn locked(&self) -> bool {
+	pub const fn locked(&self) -> bool {
 		self.0 & (1 << 22) != 0
 	}
-	pub fn large_page(&self) -> bool {
+	pub const fn large_page(&self) -> bool {
 		self.0 & (1 << 23) != 0
 	}
-	pub fn bad(&self) -> bool {
+	pub const fn bad(&self) -> bool {
 		self.0 & (1 << 31) != 0
 	}
 }
