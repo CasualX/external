@@ -1,5 +1,5 @@
 /*!
-Error codes.
+Windows error codes.
 !*/
 
 use std::{fmt, error};
@@ -8,31 +8,18 @@ use crate::winapi::*;
 /// Windows error code.
 ///
 /// See [System Error Codes](https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381.aspx) for more information.
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct ErrorCode(DWORD);
-impl_inner!(ErrorCode: DWORD);
-impl From<u32> for ErrorCode {
-	fn from(error_code: u32) -> ErrorCode {
-		ErrorCode(error_code)
-	}
-}
-impl From<ErrorCode> for u32 {
-	fn from(error_code: ErrorCode) -> u32 {
-		error_code.0
-	}
-}
-impl AsRef<u32> for ErrorCode {
-	fn as_ref(&self) -> &u32 {
-		&self.0
-	}
-}
-impl AsMut<u32> for ErrorCode {
-	fn as_mut(&mut self) -> &mut u32 {
-		&mut self.0
-	}
+impl_inner!(ErrorCode: safe DWORD);
+impl ErrorCode {
+	pub const SUCCESS: ErrorCode = ErrorCode(0);
 }
 impl ErrorCode {
-	/// Get the last error code.
+	/// Returns true if this is the success error code.
+	pub const fn is_success(self) -> bool {
+		self.0 == 0
+	}
+	/// Gets the last error code.
 	///
 	/// See [GetLastError function](https://msdn.microsoft.com/en-us/library/windows/desktop/ms679360.aspx) for more information.
 	pub fn last() -> ErrorCode {
@@ -54,5 +41,3 @@ impl error::Error for ErrorCode {
 		"system error code"
 	}
 }
-
-pub const ERROR_SUCCESS: ErrorCode = ErrorCode(0);
