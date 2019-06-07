@@ -4,6 +4,8 @@ Externals.
 
 #![cfg(windows)]
 
+#![cfg_attr(feature = "nightly", feature(asm))]
+
 mod util;
 pub use self::util::*;
 
