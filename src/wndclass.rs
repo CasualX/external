@@ -10,10 +10,6 @@ use crate::{Result, FromInner, IntoInner};
 pub static CLASS_NAME: [u16; 6] = wide_str!('C' 'l' 'a' 's' 's' 0);
 pub static WINDOW_TITLE: [u16; 6] = wide_str!('T' 'i' 't' 'l' 'e' 0);
 
-extern "C" {
-	static __ImageBase: u8;
-}
-
 #[allow(non_snake_case)]
 pub struct Message {
 	pub window: Window,
@@ -31,7 +27,7 @@ pub trait WndClass {
 			lpfnWndProc: Some(Self::thunk_wnd_proc),
 			cbClsExtra: 0,
 			cbWndExtra: 0,
-			hInstance: unsafe { &__ImageBase as *const _ as HINSTANCE },
+			hInstance: crate::module::image_base(),
 			hIcon: 0 as HICON,
 			hCursor: 0 as HCURSOR,
 			hbrBackground: (COLOR_WINDOWFRAME) as HBRUSH,

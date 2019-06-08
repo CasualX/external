@@ -13,3 +13,21 @@ pub use self::thread_rights::*;
 pub use self::thread_enum::*;
 // pub use self::thread_tib::*;
 pub use self::thread::*;
+
+/// CreateThread from DllMain and calls FreeLibraryAndExitThread when the function returns.
+///
+/// The purpose of this function is to aid injected DLLs to start a new thread from inside DllMain's DLL_PROCESS_ATTACH event and free themselves when exited.
+pub fn start(f: fn()) {
+	unsafe {
+		use std::{mem, ptr};
+		use crate::winapi::*;
+		extern "system" fn thunk(f: LPVOID) -> DWORD {
+			unsafe {
+				mem::transmute::<_, fn()>(f)();
+				FreeLibraryAndExitThread(crate::module::image_base(), 0);
+			}
+			return 0;
+		}
+		CreateThread(ptr::null_mut(), 0, Some(thunk), f as LPVOID, 0, ptr::null_mut());
+	}
+}

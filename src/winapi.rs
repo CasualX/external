@@ -3,6 +3,7 @@
 pub use winapi::um::consoleapi::*;
 pub use winapi::um::errhandlingapi::*;
 pub use winapi::um::handleapi::*;
+pub use winapi::um::libloaderapi::*;
 pub use winapi::um::memoryapi::*;
 pub use winapi::um::processthreadsapi::*;
 pub use winapi::um::profileapi::*;
