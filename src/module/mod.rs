@@ -3,7 +3,7 @@ Modules.
 !*/
 
 mod module_enum;
-mod module_iter;
+mod module_ldr_data;
 
 pub use self::module_enum::*;
-pub use self::module_iter::*;
+pub use self::module_ldr_data::*;
