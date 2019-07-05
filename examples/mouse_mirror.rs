@@ -1,5 +1,6 @@
 use external::wndclass::{pump_once, sleep};
 use external::windows_hook;
+use external::hook::MouseLL;
 use external::mouse::MouseInput;
 
 use std::sync::atomic;

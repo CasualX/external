@@ -3,7 +3,8 @@ Windows hooks.
 
 The most important thing to know is that the callbacks are context-less.
 
-You cannot pass a `self` of any kind to communicate to the outside world, the only way to get information out is through global mutable state. This is an API design limitation of `SetWindowsHookEx` itself.
+You cannot pass a `self` of any kind to communicate to the outside world, the only way to get information out is through global mutable state.
+This is an API design limitation of `SetWindowsHookEx` itself.
 
 # Examples
 
@@ -15,17 +16,13 @@ This complexity is needed due to the lack of context pointer making the `Fn*` tr
 # #[macro_use] extern crate external; fn main() {
 windows_hook! {
 	/// A function with the given name which takes no arguments is created.
-	///
 	/// This function registers the hook and returns the registration result.
-	///
 	/// Doc comments, other attributes and optional `pub` will be applied to this function.
-	pub fn my_callback(context: &mut KeyboardLL) {
-		// The callback type is defined by the argument identifier:
-		//
-		// * `KeyboardLL` means this is a low level keyboard hook.
-		// * `MouseLL` means this is a low level mouse hook.
-		//
-		// It is not necessary to use any items from this module, the macro will resolve them for you.
+	///
+	/// The callback type is defined by the argument identifier:
+	/// * `KeyboardLL` means this is a low level keyboard hook.
+	/// * `MouseLL` means this is a low level mouse hook.
+	pub fn my_hook(context: &mut external::hook::KeyboardLL) {
 		println!("{:?}", context);
 	}
 }
@@ -35,79 +32,65 @@ windows_hook! {
 Generates the following code:
 
 ```
-/// A function with the given name which takes no arguments is created.
-///
-/// This function registers the hook and returns the registration result.
-///
-/// Doc comments, other attributes and optional `pub` will be applied to this function.
-pub fn my_callback() -> Result<external::hook::Hook, external::error::ErrorCode> {
+/// {{doc-comment}}
+pub fn my_hook() -> Result<external::hook::Hook, external::error::ErrorCode> {
 	enum T {}
-	impl external::hook::Invoke for T {
-		unsafe fn invoke(context: &mut external::hook::Context) {
-			<T as external::hook::CallKeyboardLL>::callback(std::mem::transmute(context));
-		}
-	}
-	impl external::hook::CallKeyboardLL for T {
-		fn callback(context: &mut external::hook::KeyboardLL) {
+	impl external::hook::WindowsHook for T {
+		type Context = external::hook::KeyboardLL;
+		fn invoke(context: &mut external::hook::KeyboardLL) {
 			println!("{:?}", context);
 		}
 	}
-	impl T {
-		/// Registers the hook.
-		pub fn register() -> Result<external::hook::Hook, external::error::ErrorCode> {
-			<T as external::hook::CallKeyboardLL>::register()
-		}
-	}
-	T::register()
+	<T as external::hook::WindowsHook>::register()
 }
 ```
 
 Register the hook by simply calling the defined function and unwrapping it.
 !*/
 
-use std::{ptr, panic};
+use std::{ptr};
+use crate::error::ErrorCode;
 use crate::winapi::*;
 
-/// Raw context for hook callbacks.
-///
-/// You will not need to use this directly.
-#[allow(non_snake_case)]
-pub struct Context {
-	pub code: c_int,
-	pub wParam: WPARAM,
-	pub lParam: LPARAM,
-	pub result: LRESULT,
+pub unsafe trait HookContext: Sized {
+	/// The windows idHook type.
+	fn hook_type() -> c_int;
+	/// Construct the context from its raw parameters.
+	unsafe fn from_raw(code: c_int, w_param: WPARAM, l_param: LPARAM) -> Self;
+	/// Invokes the next hook with the right parameters.
+	unsafe fn call_next_hook(&self) -> LRESULT;
 }
 
-/// Thunks the system's `HOOKPROC`.
-pub trait Invoke {
-	/// Cast the raw context to something more sensible for the specific hook type and invoke the real callback handler.
-	unsafe fn invoke(arg: &mut Context);
-
-	#[allow(non_snake_case)]
-	#[doc(hidden)]
-	unsafe extern "system" fn thunk(code: c_int, wParam: WPARAM, lParam: LPARAM) -> LRESULT {
+/// User callbacks.
+pub trait WindowsHook: Sized {
+	/// The type of callback.
+	type Context: HookContext;
+	/// The callback to invoke.
+	///
+	/// # Safety
+	///
+	/// Do not move the context out of the `&mut` reference.
+	/// It contains pointers internally that will not outlive the invoke callback.
+	fn invoke(arg: &mut Self::Context);
+	/// Unsafe thunk to your Rust callback.
+	unsafe extern "system" fn thunk(code: c_int, w_param: WPARAM, l_param: LPARAM) -> LRESULT {
+		let mut context = Self::Context::from_raw(code, w_param, l_param);
 		if code >= 0 {
-			let result = panic::catch_unwind(|| {
-				let mut context = Context {
-					code: code,
-					wParam: wParam,
-					lParam: lParam,
-					result: 0,
-				};
-				Self::invoke(&mut context);
-				context
-			});
-			if let Ok(context) = result {
-				return if context.result != 0 {
-					context.result
-				}
-				else {
-					CallNextHookEx(ptr::null_mut(), context.code, context.wParam, context.lParam)
-				};
+			Self::invoke(&mut context);
+		}
+		context.call_next_hook()
+	}
+	/// Registers the hook.
+	fn register() -> Result<Hook, ErrorCode> {
+		unsafe {
+			let hook = SetWindowsHookExW(Self::Context::hook_type(), Some(Self::thunk), ptr::null_mut(), 0);
+			if hook.is_null() {
+				Err(ErrorCode::last())
+			}
+			else {
+				Ok(Hook(hook))
 			}
 		}
-		CallNextHookEx(ptr::null_mut(), code, wParam, lParam)
 	}
 }
 
@@ -116,85 +99,25 @@ pub trait Invoke {
 /// See the [hook module](hook/index.html)'s documentation for more information.
 #[macro_export]
 macro_rules! windows_hook {
-	//----------------------------------------------------------------
-	// Parser rules
-
-	// Match the `KeyboardLL` callback fn
-	(@parse $prefix:tt [fn $name:ident($arg:ident: &mut KeyboardLL) $body:tt]) => {
-		windows_hook!(@emit $prefix CallKeyboardLL [fn $name($arg: &mut KeyboardLL) $body]);
-	};
-	// Match the `MouseLL` callback fn
-	(@parse $prefix:tt [fn $name:ident($arg:ident: &mut MouseLL) $body:tt]) => {
-		windows_hook!(@emit $prefix CallMouseLL [fn $name($arg: &mut MouseLL) $body]);
-	};
-	// Match every other callback fn
-	(@parse $prefix:tt [fn $($tail:tt)*]) => {
-		env!("Unsupported argument fn: expected `&mut KeyboardLL` or `&mut MouseLL`. Check spelling?");
-	};
-
-	// Match the `KeyboardLL` callback type
-	(@parse $prefix:tt [type $name:ident($arg:ident: &mut KeyboardLL) $body:tt]) => {
-		windows_hook!(@emit $prefix CallKeyboardLL [type $name($arg: &mut KeyboardLL) $body]);
-	};
-	// Match the `MouseLL` callback type
-	(@parse $prefix:tt [type $name:ident($arg:ident: &mut MouseLL) $body:tt]) => {
-		windows_hook!(@emit $prefix CallMouseLL [type $name($arg: &mut MouseLL) $body]);
-	};
-	// Match every other callback type
-	(@parse $prefix:tt [type $($tail:tt)*]) => {
-		env!("Unsupported argument type: expected `&mut KeyboardLL` or `&mut MouseLL`. Check spelling?");
-	};
-
-	// TT muncher pealing off prefixes
-	(@parse [$($prefix:tt)*] [$head:tt $($tail:tt)*]) => {
-		windows_hook!(@parse [$($prefix)* $head] [$($tail)*]);
-	};
-	// Catches the case where no `fn` or `type` token is found
-	(@parse $prefix:tt []) => {
-		env!("Invalid syntax: expected an `fn` or `type` token.");
-	};
-
-	//----------------------------------------------------------------
-	// Emits the finalized code
-
-	// Emits the given name as a registration function.
-	(@emit [$($prefix:tt)*] $call:ident [fn $name:ident($arg:ident: &mut $ty:ident) $body:tt]) => {
-		$($prefix)*
-		fn $name() -> Result<$crate::hook::Hook, $crate::error::ErrorCode> {
-			windows_hook!(@emit [] $call [type T($arg: &mut $ty) $body]);
-			T::register()
-		}
-	};
-
-	// Emits the given name as a registration type.
-	(@emit [$($prefix:tt)*] $call:ident [type $name:ident($arg:ident: &mut $ty:ident) $body:tt]) => {
-		$($prefix)*
-		enum $name {}
-		impl $crate::hook::Invoke for $name {
-			unsafe fn invoke(context: &mut $crate::hook::Context) {
-				<Self as $crate::hook::$call>::callback(std::mem::transmute(context));
+	(
+		$(#[$meta:meta])*
+		$vis:vis fn $name:ident($arg:ident: &mut $ty:ty) $body:tt
+	) => {
+		$(#[$meta])*
+		$vis fn $name() -> Result<$crate::hook::Hook, $crate::error::ErrorCode> {
+			enum T {}
+			impl $crate::hook::WindowsHook for T {
+				type Context = $ty;
+				fn invoke($arg: &mut $ty) $body
 			}
+			<T as $crate::hook::WindowsHook>::register()
 		}
-		impl $crate::hook::$call for $name {
-			fn callback($arg: &mut $crate::hook::$ty) $body
-		}
-		impl $name {
-			/// Registers the hook.
-			pub fn register() -> Result<$crate::hook::Hook, $crate::error::ErrorCode> {
-				<$name as $crate::hook::$call>::register()
-			}
-		}
-	};
-
-	//----------------------------------------------------------------
-	// Macro entry point
-
-	($($tail:tt)*) => {
-		windows_hook!(@parse [] [$($tail)*]);
 	};
 }
 
-/// The hook registration, unhooked when this goes out of scope.
+/// The hook registration.
+///
+/// The hook is unhooked when this instance goes out of scope.
 pub struct Hook(HHOOK);
 impl Drop for Hook {
 	fn drop(&mut self) {

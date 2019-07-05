@@ -4,9 +4,8 @@ Low level mouse hook details.
 
 use std::{ptr, fmt};
 use crate::winapi::*;
-use crate::error::ErrorCode;
 use crate::vk::VirtualKey;
-use super::{Context, Invoke, Hook};
+use super::HookContext;
 
 //----------------------------------------------------------------
 
@@ -18,6 +17,7 @@ pub enum MouseData {
 	DoubleClick(VirtualKey),
 	Wheel(i16),
 	HWheel(i16),
+	Message,
 }
 
 /// Low level mouse hook callback context.
@@ -28,24 +28,29 @@ pub enum MouseData {
 /// [MSLLHOOKSTRUCT](https://msdn.microsoft.com/en-us/library/windows/desktop/ms644970(v=vs.85).aspx)
 /// for more information.
 #[repr(C)]
-pub struct MouseLL(Context);
+pub struct MouseLL {
+	code: c_int,
+	message: u32,
+	info: *mut MSLLHOOKSTRUCT,
+	result: LRESULT,
+}
 impl MouseLL {
 	pub fn cancel(&mut self) {
-		self.0.result = !0;
+		self.result = !0;
 	}
 
-	pub fn message(&self) -> UINT {
-		self.0.wParam as UINT
+	pub fn message(&self) -> u32 {
+		self.message
 	}
-	pub fn set_message(&mut self, message: UINT) {
-		self.0.wParam = message as WPARAM;
+	pub fn set_message(&mut self, message: u32) {
+		self.message = message;
 	}
 
 	fn info_mut(&mut self) -> &mut MSLLHOOKSTRUCT {
-		unsafe { &mut *(self.0.lParam as *mut MSLLHOOKSTRUCT) }
+		unsafe { &mut *self.info }
 	}
 	fn info(&self) -> &MSLLHOOKSTRUCT {
-		unsafe { &*(self.0.lParam as *const MSLLHOOKSTRUCT) }
+		unsafe { &*self.info }
 	}
 
 	pub fn pt_x(&self) -> i32 {
@@ -60,33 +65,33 @@ impl MouseLL {
 	pub fn set_pt_y(&mut self, y: i32) {
 		self.info_mut().pt.y = y;
 	}
+	fn mouse_data_xbutton(&self) -> VirtualKey {
+		match (self.info().mouseData >> 16) as u16 {
+			XBUTTON1 => VirtualKey::XBUTTON1,
+			XBUTTON2 => VirtualKey::XBUTTON2,
+			_ => VirtualKey::NONE,
+			// x => panic!("unknown xbutton: {}", x),
+		}
+	}
+	fn mouse_data_wheel(&self) -> i16 {
+		(self.info().mouseData >> 16) as i16
+	}
 	pub fn mouse_data(&self) -> MouseData {
-		match self.0.wParam as UINT {
+		match self.message {
 			WM_MOUSEMOVE => MouseData::Move,
 			WM_LBUTTONDOWN => MouseData::ButtonDown(VirtualKey::LBUTTON),
 			WM_LBUTTONUP => MouseData::ButtonUp(VirtualKey::LBUTTON),
 			WM_RBUTTONDOWN => MouseData::ButtonDown(VirtualKey::RBUTTON),
 			WM_RBUTTONUP => MouseData::ButtonUp(VirtualKey::RBUTTON),
-			message @ WM_XBUTTONDOWN ... WM_XBUTTONUP => {
-				let vk = match (self.info().mouseData >> 16) as u16 {
-					XBUTTON1 => VirtualKey::XBUTTON1,
-					XBUTTON2 => VirtualKey::XBUTTON2,
-					button => panic!("unknown xbutton: {}", button),
-				};
-				if message == WM_XBUTTONDOWN {
-					MouseData::ButtonDown(vk)
-				}
-				else {
-					MouseData::ButtonUp(vk)
-				}
-			},
-			WM_MOUSEWHEEL => MouseData::Wheel((self.info().mouseData >> 16) as i16),
-			WM_MOUSEHWHEEL => MouseData::HWheel((self.info().mouseData >> 16) as i16),
-			message => panic!("unexpected message: {:#X}", message),
+			WM_XBUTTONDOWN => MouseData::ButtonDown(self.mouse_data_xbutton()),
+			WM_XBUTTONUP => MouseData::ButtonUp(self.mouse_data_xbutton()),
+			WM_MOUSEWHEEL => MouseData::Wheel(self.mouse_data_wheel()),
+			WM_MOUSEHWHEEL => MouseData::HWheel(self.mouse_data_wheel()),
+			_ => MouseData::Message,
 		}
 	}
 	pub fn injected(&self) -> bool {
-		(self.info().flags & 0x01) != 0
+		self.info().flags & 0x01 != 0
 	}
 	pub fn set_injected(&mut self) {
 		self.info_mut().flags |= 0x01;
@@ -95,7 +100,7 @@ impl MouseLL {
 		self.info_mut().flags &= !0x01;
 	}
 	pub fn lower_il_injected(&self) -> bool {
-		(self.info().flags & 0x02) != 0
+		self.info().flags & 0x02 != 0
 	}
 	pub fn set_lower_il_injected(&mut self) {
 		self.info_mut().flags |= 0x02;
@@ -112,8 +117,8 @@ impl MouseLL {
 	pub unsafe fn extra_info<T>(&self) -> Option<&T> {
 		(self.info().dwExtraInfo as *const T).as_ref()
 	}
-	pub unsafe fn extra_info_mut<T>(&self) -> Option<&mut T> {
-		(self.info().dwExtraInfo as *mut T).as_mut()
+	pub unsafe fn extra_info_mut<T>(&mut self) -> Option<&mut T> {
+		(self.info_mut().dwExtraInfo as *mut T).as_mut()
 	}
 }
 impl fmt::Debug for MouseLL {
@@ -126,24 +131,27 @@ impl fmt::Debug for MouseLL {
 			.field("injected", &self.injected())
 			.field("lower_il_injected", &self.lower_il_injected())
 			.field("time", &self.time())
-			.field("dwExtraInfo", &(self.info().dwExtraInfo as *const ()))
+			.field("dwExtraInfo", &unsafe { (*self.info).dwExtraInfo as *const () })
 			.finish()
 	}
 }
-
-/// Low level mouse hook callback.
-pub trait CallMouseLL: Invoke {
-	fn callback(arg: &mut MouseLL);
-	/// Registers the low-level mouse hook.
-	fn register() -> Result<Hook, ErrorCode> {
-		unsafe {
-			let hook = SetWindowsHookExW(WH_MOUSE_LL, Some(Self::thunk), ptr::null_mut(), 0);
-			if hook.is_null() {
-				Err(ErrorCode::last())
-			}
-			else {
-				Ok(Hook(hook))
-			}
+unsafe impl HookContext for MouseLL {
+	fn hook_type() -> c_int {
+		WH_MOUSE_LL
+	}
+	unsafe fn from_raw(code: c_int, w_param: WPARAM, l_param: LPARAM) -> Self {
+		let message = w_param as u32;
+		let info = l_param as *mut MSLLHOOKSTRUCT;
+		MouseLL { code, message, info, result: 0 }
+	}
+	unsafe fn call_next_hook(&self) -> LRESULT {
+		if self.result != 0 {
+			self.result
+		}
+		else {
+			let w_param = self.message as WPARAM;
+			let l_param = self.info as LPARAM;
+			CallNextHookEx(ptr::null_mut(), self.code, w_param, l_param)
 		}
 	}
 }
