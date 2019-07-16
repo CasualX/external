@@ -7,6 +7,7 @@ Example demonstrating the usage of low level hooks.
 use external::vk::VirtualKey;
 use external::wndclass::{pump_once, sleep};
 use external::windows_hook;
+use external::hook::{KeyboardLL, MouseLL};
 
 // Any communcation has to happen through global mutable state...
 static mut DONE: bool = false;

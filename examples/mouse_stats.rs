@@ -4,6 +4,7 @@ Track the total mouse distance moved.
 
 use external::wndclass::{pump_once};
 use external::windows_hook;
+use external::hook::MouseLL;
 use external::system::time_s;
 use external::wndclass::sleep;
 use external::mouse::MouseInput;

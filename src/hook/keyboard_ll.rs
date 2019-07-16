@@ -4,9 +4,8 @@ Low level keyboard hook details.
 
 use std::{ptr, fmt};
 use crate::winapi::*;
-use crate::error::ErrorCode;
 use crate::vk::VirtualKey;
-use super::{Context, Invoke, Hook};
+use super::HookContext;
 
 //----------------------------------------------------------------
 
@@ -18,24 +17,29 @@ use super::{Context, Invoke, Hook};
 /// [KBDLLHOOKSTRUCT](https://msdn.microsoft.com/en-us/library/windows/desktop/ms644967.aspx)
 /// for more information.
 #[repr(C)]
-pub struct KeyboardLL(Context);
+pub struct KeyboardLL {
+	code: c_int,
+	message: u32,
+	info: *mut KBDLLHOOKSTRUCT,
+	result: LRESULT,
+}
 impl KeyboardLL {
 	pub fn cancel(&mut self) {
-		self.0.result = !0;
+		self.result = !0;
 	}
 
-	pub fn message(&self) -> UINT {
-		self.0.wParam as UINT
+	pub fn message(&self) -> u32 {
+		self.message
 	}
-	pub fn set_message(&mut self, message: UINT) {
-		self.0.wParam = message as WPARAM;
+	pub fn set_message(&mut self, message: u32) {
+		self.message = message;
 	}
 
 	fn info_mut(&mut self) -> &mut KBDLLHOOKSTRUCT {
-		unsafe { &mut *(self.0.lParam as *mut KBDLLHOOKSTRUCT) }
+		unsafe { &mut *self.info }
 	}
 	fn info(&self) -> &KBDLLHOOKSTRUCT {
-		unsafe { &*(self.0.lParam as *const KBDLLHOOKSTRUCT) }
+		unsafe { &*self.info }
 	}
 
 	pub fn vk_code(&self) -> VirtualKey {
@@ -125,20 +129,23 @@ impl fmt::Debug for KeyboardLL {
 			.finish()
 	}
 }
-
-/// Low level keyboard hook callback.
-pub trait CallKeyboardLL: Invoke {
-	fn callback(arg: &mut KeyboardLL);
-	/// Registers the low-level keyboard hook.
-	fn register() -> Result<Hook, ErrorCode> {
-		unsafe {
-			let hook = SetWindowsHookExW(WH_KEYBOARD_LL, Some(Self::thunk), ptr::null_mut(), 0);
-			if hook.is_null() {
-				Err(ErrorCode::last())
-			}
-			else {
-				Ok(Hook(hook))
-			}
+unsafe impl HookContext for KeyboardLL {
+	fn hook_type() -> c_int {
+		WH_KEYBOARD_LL
+	}
+	unsafe fn from_raw(code: c_int, w_param: WPARAM, l_param: LPARAM) -> Self {
+		let message = w_param as u32;
+		let info = l_param as *mut KBDLLHOOKSTRUCT;
+		KeyboardLL { code, message, info, result: 0 }
+	}
+	unsafe fn call_next_hook(&self) -> LRESULT {
+		if self.result != 0 {
+			self.result
+		}
+		else {
+			let w_param = self.message as WPARAM;
+			let l_param = self.info as LPARAM;
+			CallNextHookEx(ptr::null_mut(), self.code, w_param, l_param)
 		}
 	}
 }
@@ -154,7 +161,7 @@ mod tests {
 	fn test_keyboard_ll() {
 		static mut PRESSED: bool = false;
 		windows_hook! {
-			pub fn my_callback(context: &mut KeyboardLL) {
+			pub fn my_callback(context: &mut super::KeyboardLL) {
 				println!("{:#?}", context);
 				if context.vk_code() == VirtualKey::SPACE {
 					unsafe { PRESSED = true; }

@@ -7,6 +7,7 @@ use std::{env, thread, time};
 use external::vk::VirtualKey;
 use external::wndclass::{pump_once, sleep};
 use external::windows_hook;
+use external::hook::{KeyboardLL, MouseLL};
 
 fn main() {
 	let mut args = env::args();
