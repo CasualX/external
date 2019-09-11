@@ -15,6 +15,7 @@ features = [
 	"consoleapi",
 	"errhandlingapi",
 	"handleapi",
+	"libloaderapi",
 	"memoryapi",
 	"processthreadsapi",
 	"profileapi",
