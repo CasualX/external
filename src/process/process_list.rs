@@ -75,30 +75,92 @@ pub struct ProcessInformation {
 	ti: [SYSTEM_THREAD_INFORMATION],
 }
 impl ProcessInformation {
+	pub fn working_set_private_size(&self) -> u64 {
+		unsafe { mem::transmute(self.pi.WorkingSetPrivateSize) }
+	}
+	pub fn hard_fault_count(&self) -> u32 {
+		self.pi.HardFaultCount
+	}
+	pub fn cycle_time(&self) -> u64 {
+		self.pi.CycleTime
+	}
+	pub fn create_time(&self) -> u64 {
+		unsafe { mem::transmute(self.pi.CreateTime) }
+	}
+	pub fn user_time(&self) -> u64 {
+		unsafe { mem::transmute(self.pi.UserTime) }
+	}
+	pub fn kernel_time(&self) -> u64 {
+		unsafe { mem::transmute(self.pi.KernelTime) }
+	}
 	pub fn image_name_wide(&self) -> &[u16] {
-		unsafe {
-			slice::from_raw_parts(self.pi.ImageName.Buffer, (self.pi.ImageName.Length as u32 >> 1) as usize)
-		}
+		unsafe { slice::from_raw_parts(self.pi.ImageName.Buffer, (self.pi.ImageName.Length as u32 >> 1) as usize) }
 	}
 	pub fn image_name(&self) -> OsString {
 		OsString::from_wide(self.image_name_wide())
 	}
 	pub fn process_id(&self) -> ProcessId {
-		unsafe {
-			ProcessId::from_inner(self.pi.UniqueProcessId as usize as u32)
-		}
+		unsafe { ProcessId::from_inner(self.pi.UniqueProcessId as usize as u32) }
+	}
+	pub fn parent_process_id(&self) -> ProcessId {
+		unsafe { ProcessId::from_inner(self.pi.InheritedFromUniqueProcessId as usize as u32) }
+	}
+	pub fn handle_count(&self) -> u32 {
+		self.pi.HandleCount
+	}
+	pub fn session_id(&self) -> u32 {
+		self.pi.SessionId
+	}
+	pub fn peak_virtual_size(&self) -> usize {
+		self.pi.PeakVirtualSize
+	}
+	pub fn virtual_size(&self) -> usize {
+		self.pi.VirtualSize
+	}
+	pub fn page_fault_count(&self) -> u32 {
+		self.pi.PageFaultCount
+	}
+	pub fn peak_working_set_size(&self) -> usize {
+		self.pi.PeakWorkingSetSize
+	}
+	pub fn working_set_size(&self) -> usize {
+		self.pi.WorkingSetSize
+	}
+	pub fn pagefile_usage(&self) -> usize {
+		self.pi.PagefileUsage
+	}
+	pub fn peak_pagefile_usage(&self) -> usize {
+		self.pi.PeakPagefileUsage
+	}
+	pub fn private_page_count(&self) -> usize {
+		self.pi.PrivatePageCount
 	}
 	pub fn threads(&self) -> &[ThreadInformation] {
-		unsafe {
-			mem::transmute(&self.ti)
-		}
+		unsafe { mem::transmute(&self.ti) }
 	}
 }
 impl fmt::Debug for ProcessInformation {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		f.debug_struct("ProcessInformation")
-			.field("process_id", &self.process_id())
+			.field("number_of_threads", &self.threads().len())
+			.field("hard_fault_count", &self.hard_fault_count())
+			.field("cycle_time", &self.cycle_time())
+			.field("create_time", &self.create_time())
+			.field("user_time", &self.user_time())
+			.field("kernel_time", &self.kernel_time())
 			.field("image_name", &self.image_name())
+			.field("process_id", &self.process_id())
+			.field("parent_process_id", &self.parent_process_id())
+			.field("handle_count", &self.handle_count())
+			.field("session_id", &self.session_id())
+			.field("peak_virtual_size", &self.peak_virtual_size())
+			.field("virtual_size", &self.virtual_size())
+			.field("page_fault_count", &self.page_fault_count())
+			.field("peak_working_set_size", &self.peak_working_set_size())
+			.field("working_set_size", &self.working_set_size())
+			.field("pagefile_usage", &self.pagefile_usage())
+			.field("peak_pagefile_usage", &self.peak_pagefile_usage())
+			.field("private_page_count", &self.private_page_count())
 			.field("threads", &self.threads())
 			.finish()
 	}
@@ -109,18 +171,35 @@ impl fmt::Debug for ProcessInformation {
 #[repr(C)]
 pub struct ThreadInformation(SYSTEM_THREAD_INFORMATION);
 impl ThreadInformation {
+	pub fn kernel_time(&self) -> u64 {
+		unsafe { mem::transmute(self.0.KernelTime) }
+	}
+	pub fn user_time(&self) -> u64 {
+		unsafe { mem::transmute(self.0.UserTime) }
+	}
+	pub fn create_time(&self) -> u64 {
+		unsafe { mem::transmute(self.0.CreateTime) }
+	}
+	pub fn wait_time(&self) -> u32 {
+		self.0.WaitTime
+	}
 	pub fn start_address(&self) -> usize {
 		self.0.StartAddress as usize
 	}
 	pub fn process_id(&self) -> ProcessId {
-		unsafe {
-			ProcessId::from_inner(self.0.ClientId.UniqueProcess as usize as u32)
-		}
+		unsafe { ProcessId::from_inner(self.0.ClientId.UniqueProcess as usize as u32) }
 	}
 	pub fn thread_id(&self) -> ThreadId {
-		unsafe {
-			ThreadId::from_inner(self.0.ClientId.UniqueThread as usize as u32)
-		}
+		unsafe { ThreadId::from_inner(self.0.ClientId.UniqueThread as usize as u32) }
+	}
+	pub fn priority(&self) -> i32 {
+		self.0.Priority
+	}
+	pub fn base_priority(&self) -> i32 {
+		self.0.BasePriority
+	}
+	pub fn context_switches(&self) -> u32 {
+		self.0.ContextSwitches
 	}
 	pub fn thread_state(&self) -> u32 {
 		self.0.ThreadState
@@ -132,9 +211,16 @@ impl ThreadInformation {
 impl fmt::Debug for ThreadInformation {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		f.debug_struct("ThreadInformation")
-			.field("thread_id", &self.thread_id())
+			.field("kernel_time", &self.kernel_time())
+			.field("user_time", &self.user_time())
+			.field("create_time", &self.create_time())
+			.field("wait_time", &self.wait_time())
+			.field("start_address", &format_args!("{:#x}", self.start_address()))
 			.field("process_id", &self.process_id())
-			.field("start_address", &self.start_address())
+			.field("thread_id", &self.thread_id())
+			.field("priority", &self.priority())
+			.field("base_priority", &self.base_priority())
+			.field("context_switches", &self.context_switches())
 			.field("thread_state", &self.thread_state())
 			.field("wait_reason", &self.wait_reason())
 			.finish()
