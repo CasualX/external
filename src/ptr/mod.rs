@@ -44,8 +44,7 @@ pub type Ptr<T> = Ptr64<T>;
 #[cfg(target_pointer_width = "32")]
 pub type Ptr<T> = Ptr32<T>;
 
-mod pod;
-pub use self::pod::Pod;
+pub use dataview::Pod;
 
 impl<T: ?Sized> From<Ptr32<T>> for Ptr64<T> {
 	fn from(ptr: Ptr32<T>) -> Ptr64<T> {
