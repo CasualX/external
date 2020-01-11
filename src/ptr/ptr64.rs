@@ -116,7 +116,7 @@ impl<T: ?Sized> serde::Serialize for Ptr64<T> {
 	}
 }
 
-unsafe impl<T: ?Sized> Pod for Ptr64<T> {}
+unsafe impl<T: ?Sized + 'static> Pod for Ptr64<T> {}
 
 //----------------------------------------------------------------
 
