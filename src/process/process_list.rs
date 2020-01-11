@@ -9,28 +9,20 @@ use crate::process::ProcessId;
 //----------------------------------------------------------------
 
 #[derive(Clone)]
-pub struct ProcessList(Vec<u8>);
+pub struct ProcessList(Box<[u8]>);
 impl ProcessList {
 	#[inline(never)]
 	pub fn query() -> ProcessList {
-		let mut data = Vec::new();
+		let mut data = Vec::new().into_boxed_slice();
 		let mut return_length = 0;
 		unsafe {
-			loop {
-				let ntstatus = NtQuerySystemInformation(
-					SystemProcessInformation,
-					data.as_mut_ptr() as PVOID,
-					data.capacity() as ULONG,
-					&mut return_length,
-				);
-				if ntstatus >= 0 {
-					data.set_len(return_length as usize);
-					break;
-				}
-				if data.capacity() < return_length as usize {
-					let additional = return_length as usize - data.capacity();
-					data.reserve_exact(additional);
-				}
+			while NtQuerySystemInformation(
+				SystemProcessInformation,
+				data.as_mut_ptr() as PVOID,
+				data.len() as ULONG,
+				&mut return_length,
+			) < 0 {
+				data = vec![0; return_length as usize].into_boxed_slice();
 			}
 		}
 		ProcessList(data)
