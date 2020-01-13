@@ -13,6 +13,11 @@ ntapi = "0.3"
 version = "0.1"
 default-features = false
 
+[dependencies.intptr]
+git = "https://github.com/CasualX/intptr"
+version = "0.1"
+features = ["dataview"]
+
 [dependencies.winapi]
 version = "0.3.6"
 features = [

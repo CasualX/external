@@ -32,22 +32,8 @@ All the pointer types implement these interfaces:
 * Display and Debug formatting.
 !*/
 
-mod ptr64;
-mod ptr32;
-
-pub use self::ptr64::Ptr64;
-pub use self::ptr32::Ptr32;
-
-#[cfg(target_pointer_width = "64")]
-pub type Ptr<T> = Ptr64<T>;
-
-#[cfg(target_pointer_width = "32")]
-pub type Ptr<T> = Ptr32<T>;
+pub use intptr::IntPtr32 as Ptr32;
+pub use intptr::IntPtr64 as Ptr64;
+pub use intptr::IntPtr as Ptr;
 
 pub use dataview::Pod;
-
-impl<T: ?Sized> From<Ptr32<T>> for Ptr64<T> {
-	fn from(ptr: Ptr32<T>) -> Ptr64<T> {
-		Ptr64::from(ptr.into_raw() as u64)
-	}
-}
