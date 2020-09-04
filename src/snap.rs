@@ -114,11 +114,11 @@ impl Capture {
 	}
 	pub fn info(&self) -> BITMAP {
 		unsafe {
-			let mut bitmap: BITMAP = mem::uninitialized();
-			let size_of = mem::size_of::<BITMAP>() as i32;
-			let returned = GetObjectW(self.hbmp as *mut c_void, size_of, &mut bitmap as *mut _ as *mut c_void);
-			assert_eq!(returned, size_of);
-			bitmap
+			let mut bitmap = mem::MaybeUninit::<BITMAP>::uninit();
+			let size = mem::size_of::<BITMAP>() as i32;
+			let returned = GetObjectW(self.hbmp as *mut c_void, size, bitmap.as_mut_ptr() as *mut c_void);
+			assert_eq!(returned, size);
+			bitmap.assume_init()
 		}
 	}
 	/// Capture the screen pixels.
@@ -184,7 +184,7 @@ impl Image {
 	pub fn height(&self) -> i32 {
 		self.height
 	}
-	pub fn save(&self, file: &mut io::Write) -> io::Result<()> {
+	pub fn save(&self, file: &mut dyn io::Write) -> io::Result<()> {
 		writeln!(file, "P6 {} {} 255", self.width, self.height)?;
 		for i in 0..self.pixels.len() {
 			let Color { red, green, blue, .. } = self.pixels[i];
@@ -193,7 +193,7 @@ impl Image {
 		}
 		Ok(())
 	}
-	pub fn load(file: &mut io::BufRead) -> io::Result<Image> {
+	pub fn load(file: &mut dyn io::BufRead) -> io::Result<Image> {
 		let mut s = String::new();
 		file.read_line(&mut s)?;
 		let mut line = s.split_whitespace();
