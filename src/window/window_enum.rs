@@ -7,7 +7,7 @@ use crate::window::Window;
 use crate::Result;
 
 struct EnumWindowsContext<'a> {
-	callback: &'a mut FnMut(Window) -> bool,
+	callback: &'a mut dyn FnMut(Window) -> bool,
 }
 #[allow(non_snake_case)]
 unsafe extern "system" fn thunk(hwnd: HWND, lParam: LPARAM) -> BOOL {

@@ -50,14 +50,10 @@ impl Thread {
 	/// Get the exit code for the thread, `None` if the thread is still running.
 	pub fn exit_code(&self) -> Result<Option<DWORD>> {
 		unsafe {
-			let mut code: DWORD = mem::uninitialized();
-			if GetExitCodeThread(self.0, &mut code) != FALSE {
-				if code == 259/*STILL_ACTIVE*/ {
-					Ok(None)
-				}
-				else {
-					Ok(Some(code))
-				}
+			let mut code = mem::MaybeUninit::<DWORD>::uninit();
+			if GetExitCodeThread(self.0, code.as_mut_ptr()) != FALSE {
+				let code = code.assume_init();
+				Ok(if code == 259/*STILL_ACTIVE*/ { None } else { Some(code) })
 			}
 			else {
 				Err(ErrorCode::last())

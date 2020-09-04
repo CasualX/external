@@ -111,19 +111,21 @@ impl Window {
 	/// Returns the thread and process id associated with this window.
 	pub fn thread_process_id(self) -> (ThreadId, ProcessId) {
 		unsafe {
-			let mut process_id: DWORD = mem::uninitialized();
-			let thread_id = GetWindowThreadProcessId(self.into_inner(), &mut process_id);
+			let mut process_id = mem::MaybeUninit::<DWORD>::uninit();
+			let thread_id = GetWindowThreadProcessId(self.into_inner(), process_id.as_mut_ptr());
+			let process_id = process_id.assume_init();
 			(ThreadId::from_inner(thread_id), ProcessId::from_inner(process_id))
 		}
 	}
 	/// Retrieves the coordinates of a window's client area.
 	pub fn client_area(self) -> Result<(i32, i32)> {
 		unsafe {
-			let mut rc = mem::uninitialized();
-			if GetClientRect(self.into_inner(), &mut rc) == FALSE {
+			let mut rc = mem::MaybeUninit::<RECT>::uninit();
+			if GetClientRect(self.into_inner(), rc.as_mut_ptr()) == FALSE {
 				Err(ErrorCode::last())
 			}
 			else {
+				let rc = rc.assume_init();
 				Ok((rc.right, rc.bottom))
 			}
 		}

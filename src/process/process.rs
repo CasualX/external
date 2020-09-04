@@ -27,6 +27,19 @@ impl Process {
 			Ok(Process(handle))
 		}
 	}
+	pub fn try_clone(&self) -> Result<Process> {
+		unsafe {
+			let current = GetCurrentProcess();
+			let mut new = mem::MaybeUninit::<HANDLE>::uninit();
+			// What about all these options? inherit handles?
+			if DuplicateHandle(current, self.0, current, new.as_mut_ptr(), 0, FALSE, DUPLICATE_SAME_ACCESS) != FALSE {
+				Ok(Process(new.assume_init()))
+			}
+			else {
+				Err(ErrorCode::last())
+			}
+		}
+	}
 	/// Get the id for this process.
 	pub fn pid(&self) -> Result<ProcessId> {
 		let pid = unsafe { GetProcessId(self.0) };
@@ -40,8 +53,9 @@ impl Process {
 	/// Get the exit code for the process, `None` if the process is still running.
 	pub fn exit_code(&self) -> Result<Option<DWORD>> {
 		unsafe {
-			let mut code: DWORD = mem::uninitialized();
-			if GetExitCodeProcess(self.0, &mut code) != FALSE {
+			let mut code = mem::MaybeUninit::<DWORD>::uninit();
+			if GetExitCodeProcess(self.0, code.as_mut_ptr()) != FALSE {
+				let code = code.assume_init();
 				Ok(if code == 259/*STILL_ACTIVE*/ { None } else { Some(code) })
 			}
 			else {
@@ -105,15 +119,7 @@ impl Process {
 }
 impl Clone for Process {
 	fn clone(&self) -> Process {
-		Process(unsafe {
-			let current = GetCurrentProcess();
-			let mut new: HANDLE = mem::uninitialized();
-			// What about all these options? inherit handles?
-			let result = DuplicateHandle(current, self.0, current, &mut new, 0, FALSE, DUPLICATE_SAME_ACCESS);
-			// Can't report error, should this ever fail?
-			assert!(result != FALSE, "duplicate handle error: {}", ErrorCode::last());
-			new
-		})
+		self.try_clone().expect("duplicate handle error")
 	}
 }
 impl Drop for Process {

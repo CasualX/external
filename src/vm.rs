@@ -149,21 +149,19 @@ impl fmt::Debug for WorkingSetExBlock {
 
 /// Virtual memory API.
 impl Process {
-	/// Reads bytes into the destination buffer.
 	#[inline]
-	pub fn vm_read_bytes<'a>(&self, address: usize, bytes: &'a mut [u8]) -> Result<&'a mut [u8]> {
-		let num_bytes = mem::size_of_val(bytes);
-		let success = unsafe {
-			ReadProcessMemory(
-				*self.as_inner(),
-				address as LPCVOID,
-				bytes.as_mut_ptr() as LPVOID,
-				num_bytes as SIZE_T,
-				ptr::null_mut(),
-			) != FALSE
-		};
+	unsafe fn vm_read_raw<T: Pod + ?Sized>(&self, ptr: Ptr<T>, dest: *mut T) -> Result<()> {
+		let num_bytes = mem::size_of_val(&*dest);
+		let address = ptr.into_raw() as usize;
+		let success = ReadProcessMemory(
+			*self.as_inner(),
+			address as LPCVOID,
+			dest as LPVOID,
+			num_bytes as SIZE_T,
+			ptr::null_mut()
+		) != FALSE;
 		if success {
-			Ok(bytes)
+			Ok(())
 		}
 		else {
 			Err(ErrorCode::last())
@@ -171,9 +169,10 @@ impl Process {
 	}
 	/// Reads as many bytes as are available.
 	#[inline]
-	pub fn vm_read_partial<'a>(&self, address: usize, dest: &'a mut [u8]) -> Result<&'a mut [u8]> {
+	pub fn vm_read_partial<'a>(&self, ptr: Ptr<[u8]>, dest: &'a mut [u8]) -> Result<&'a mut [u8]> {
 		let mut bytes_read = 0;
 		let num_bytes = mem::size_of_val(dest);
+		let address = ptr.into_raw() as usize;
 		let success = unsafe {
 			ReadProcessMemory(
 				*self.as_inner(),
@@ -199,21 +198,16 @@ impl Process {
 	/// Reads a Pod `T` from the process.
 	#[inline]
 	pub fn vm_read<T: Pod>(&self, ptr: Ptr<T>) -> Result<T> {
-		let address = ptr.into_raw() as usize;
-		let mut dest: T = unsafe { mem::uninitialized() };
-		match self.vm_read_bytes(address, dest.as_bytes_mut()) {
-			Ok(_) => Ok(dest),
-			Err(err) => {
-				mem::forget(dest);
-				Err(err)
-			},
+		unsafe {
+			let mut dest = mem::MaybeUninit::<T>::uninit();
+			self.vm_read_raw(ptr, dest.as_mut_ptr())?;
+			Ok(dest.assume_init())
 		}
 	}
 	/// Reads a slice of Pod `T` from the process.
 	#[inline]
 	pub fn vm_read_into<'a, T: Pod + ?Sized>(&self, ptr: Ptr<T>, dest: &'a mut T) -> Result<&'a mut T> {
-		let address = ptr.into_raw() as usize;
-		match self.vm_read_bytes(address, dest.as_bytes_mut()) {
+		match unsafe { self.vm_read_raw(ptr, dest) } {
 			Ok(_) => Ok(dest),
 			Err(err) => Err(err),
 		}
@@ -384,9 +378,9 @@ impl Process {
 	pub fn vm_query(&self, address: usize) -> Result<MemoryInformation> {
 		let size = mem::size_of::<MEMORY_BASIC_INFORMATION>() as SIZE_T;
 		unsafe {
-			let mut mem_basic_info: MemoryInformation = mem::uninitialized();
-			if VirtualQueryEx(*self.as_inner(), address as LPCVOID, &mut mem_basic_info.0, size) == size {
-				Ok(mem_basic_info)
+			let mut mem_basic_info = mem::MaybeUninit::<MemoryInformation>::uninit();
+			if VirtualQueryEx(*self.as_inner(), address as LPCVOID, mem_basic_info.as_mut_ptr() as *mut MEMORY_BASIC_INFORMATION, size) == size {
+				Ok(mem_basic_info.assume_init())
 			}
 			else {
 				Err(ErrorCode::last())
