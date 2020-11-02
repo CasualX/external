@@ -1,6 +1,7 @@
 use std::{mem, ptr};
 use std::ffi::OsString;
 use std::os::windows::ffi::{OsStringExt};
+use intptr::IntPtr;
 use crate::winapi::*;
 use crate::process::{ProcessId, ProcessRights};
 use crate::thread::Thread;
@@ -77,9 +78,9 @@ impl Process {
 			}
 		}
 	}
-	pub fn create_thread(&self, start_address: usize, parameter: usize) -> Result<Thread> {
+	pub fn create_thread(&self, start_address: IntPtr, parameter: IntPtr) -> Result<Thread> {
 		unsafe {
-			let handle = CreateRemoteThread(self.0, ptr::null_mut(), 0, mem::transmute(start_address), parameter as LPVOID, 0, ptr::null_mut());
+			let handle = CreateRemoteThread(self.0, ptr::null_mut(), 0, mem::transmute(start_address), parameter.into_usize() as LPVOID, 0, ptr::null_mut());
 			if handle.is_null() {
 				Err(ErrorCode::last())
 			}
@@ -105,9 +106,9 @@ impl Process {
 		self.full_image_name_wide(&mut buffer)
 			.map(|path| OsString::from_wide(path))
 	}
-	pub fn get_mapped_file_name_wide<'a>(&self, address: usize, buffer: &'a mut [u16]) -> Result<&'a mut [u16]> {
+	pub fn get_mapped_file_name_wide<'a>(&self, address: IntPtr, buffer: &'a mut [u16]) -> Result<&'a mut [u16]> {
 		unsafe {
-			let size = GetMappedFileNameW(self.0, address as LPVOID, buffer.as_mut_ptr(), buffer.len() as DWORD);
+			let size = GetMappedFileNameW(self.0, address.into_usize() as LPVOID, buffer.as_mut_ptr(), buffer.len() as DWORD);
 			if size != 0 {
 				Ok(buffer.get_unchecked_mut(..size as usize))
 			}

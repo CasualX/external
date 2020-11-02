@@ -23,16 +23,15 @@ mod winapi;
 
 pub type Result<T> = std::result::Result<T, error::ErrorCode>;
 
-pub mod ptr;
 pub mod error;
 pub mod process;
-pub mod vm;
 pub mod module;
 pub mod thread;
 pub mod window;
 pub mod wndclass;
 pub mod hook;
 pub mod vk;
+pub mod memory;
 pub mod mouse;
 pub mod control;
 pub mod snap;
