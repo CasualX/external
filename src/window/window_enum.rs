@@ -51,8 +51,8 @@ fn _find(class: Option<&OsStr>, title: Option<&OsStr>) -> Result<Window> {
 	});
 	let wnd = unsafe {
 		FindWindowW(
-			class.map_or(ptr::null(), |class| class.as_ptr()),
-			title.map_or(ptr::null(), |title| title.as_ptr()))
+			class.as_ref().map_or(ptr::null(), |class| class.as_ptr()),
+			title.as_ref().map_or(ptr::null(), |title| title.as_ptr()))
 	};
 	if wnd.is_null() {
 		Err(ErrorCode::last())
