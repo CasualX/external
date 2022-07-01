@@ -18,11 +18,11 @@ impl Window {
 	///
 	/// See [GetForegroundWindow function](https://msdn.microsoft.com/en-us/library/windows/desktop/ms633505.aspx) for more information.
 	pub fn foreground() -> Option<Window> {
-		unsafe {
-			let hwnd = GetForegroundWindow();
+		
+			let hwnd = unsafe {GetForegroundWindow()};
 			if hwnd.is_null() { None }
 			else { Some(Window(hwnd)) }
-		}
+		
 	}
 	/// Get the desktop window.
 	///
@@ -43,17 +43,17 @@ impl Window {
 	}
 	/// Returns the class name of this window.
 	pub fn class(self) -> Result<OsString> {
-		unsafe {
+		
 			// 260 ought to be enough for everyone.
-			let mut buf: [WCHAR; 260] = mem::uninitialized();
-			let len = RealGetWindowClassW(self.into_inner(), buf.as_mut_ptr(), 260);
+			let mut buf: [WCHAR; 260] = unsafe {mem::uninitialized()};
+			let len = unsafe {RealGetWindowClassW(self.into_inner(), buf.as_mut_ptr(), 260)};
 			if len == 0 {
 				Err(ErrorCode::last())
 			}
 			else {
 				Ok(OsString::from_wide(&buf[..len as usize]))
 			}
-		}
+		
 	}
 	pub fn show(self, cmd: i32) {
 		unsafe {
@@ -96,17 +96,17 @@ impl Window {
 	}
 	/// Returns the window title of this window.
 	pub fn title(self) -> Result<OsString> {
-		unsafe {
+		
 			// 260 ought to be enough for everyone.
-			let mut buf: [WCHAR; 260] = mem::uninitialized();
-			let len = GetWindowTextW(self.into_inner(), buf.as_mut_ptr(), 260);
+			let mut buf: [WCHAR; 260] = unsafe {mem::uninitialized()};
+			let len = unsafe {GetWindowTextW(self.into_inner(), buf.as_mut_ptr(), 260)};
 			if len <= 0 {
 				Err(ErrorCode::last())
 			}
 			else {
 				Ok(OsString::from_wide(&buf[..len as usize]))
 			}
-		}
+		
 	}
 	/// Returns the thread and process id associated with this window.
 	pub fn thread_process_id(self) -> (ThreadId, ProcessId) {

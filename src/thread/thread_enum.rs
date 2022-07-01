@@ -27,15 +27,15 @@ impl EnumThreads {
 impl Iterator for EnumThreads {
 	type Item = ThreadEntry;
 	fn next(&mut self) -> Option<ThreadEntry> {
-		unsafe {
-			let mut entry: ThreadEntry = mem::uninitialized();
-			entry.0.dwSize = mem::size_of::<THREADENTRY32>() as DWORD;
+		
+			let mut entry: ThreadEntry = unsafe {mem::uninitialized()};
+			entry.0.dwSize = unsafe {mem::size_of::<THREADENTRY32>() as DWORD};
 			let result = if self.1 {
-				Thread32Next(self.0, &mut entry.0)
+				unsafe {Thread32Next(self.0, &mut entry.0)}
 			}
 			else {
 				self.1 = true;
-				Thread32First(self.0, &mut entry.0)
+				unsafe {Thread32First(self.0, &mut entry.0)}
 			};
 			if result != FALSE {
 				Some(entry)
@@ -43,7 +43,7 @@ impl Iterator for EnumThreads {
 			else {
 				None
 			}
-		}
+		
 	}
 }
 impl Drop for EnumThreads {

@@ -46,16 +46,16 @@ impl<'a> Iterator for ProcessListIter<'a> {
 		if self.0.len() == 0 {
 			return None;
 		}
-		unsafe {
+		
 			let p = self.0.as_ptr() as *const SYSTEM_PROCESS_INFORMATION;
-			let mut size_of = cmp::min((*p).NextEntryOffset as usize, self.0.len());
+			let mut size_of = unsafe {cmp::min((*p).NextEntryOffset as usize, self.0.len())};
 			if size_of == 0 {
 				size_of = self.0.len();
 			}
-			self.0 = self.0.get_unchecked(size_of..);
-			let pi = mem::transmute(slice::from_raw_parts(p, (*p).NumberOfThreads as usize));
+			self.0 = unsafe {self.0.get_unchecked(size_of..)};
+			let pi = unsafe {mem::transmute(slice::from_raw_parts(p, (*p).NumberOfThreads as usize))};
 			Some(pi)
-		}
+		
 	}
 }
 

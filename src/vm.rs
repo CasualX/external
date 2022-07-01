@@ -198,8 +198,8 @@ impl Process {
 	/// Reads a Pod `T` from the process.
 	#[inline]
 	pub fn vm_read<T: Pod>(&self, ptr: Ptr<T>) -> Result<T> {
+		let mut dest = mem::MaybeUninit::<T>::uninit();
 		unsafe {
-			let mut dest = mem::MaybeUninit::<T>::uninit();
 			self.vm_read_raw(ptr, dest.as_mut_ptr())?;
 			Ok(dest.assume_init())
 		}
@@ -225,8 +225,8 @@ impl Process {
 		// Because this function returns a mutable slice to the original vector, it's not possible to `set_len` afterwards
 		// As that would mean aliasing mutable memory.
 		// Bypass all of this by going through a mut pointer.
+		let dest = dest as *mut Vec<T>;
 		unsafe {
-			let dest = dest as *mut Vec<T>;
 			let dest_slice = (*dest).get_unchecked_mut(old_len..new_len);
 			self.vm_read_into(ptr, dest_slice).map(|dest_slice| {
 				(*dest).set_len(new_len);
@@ -377,8 +377,8 @@ impl Process {
 	#[inline]
 	pub fn vm_query(&self, address: usize) -> Result<MemoryInformation> {
 		let size = mem::size_of::<MEMORY_BASIC_INFORMATION>() as SIZE_T;
+		let mut mem_basic_info = mem::MaybeUninit::<MemoryInformation>::uninit();
 		unsafe {
-			let mut mem_basic_info = mem::MaybeUninit::<MemoryInformation>::uninit();
 			if VirtualQueryEx(*self.as_inner(), address as LPCVOID, mem_basic_info.as_mut_ptr() as *mut MEMORY_BASIC_INFORMATION, size) == size {
 				Ok(mem_basic_info.assume_init())
 			}
