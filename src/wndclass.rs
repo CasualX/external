@@ -37,21 +37,21 @@ pub trait WndClass {
 		}
 	}
 	fn register() -> Result<()> {
-		unsafe {
+		
 			let class = Self::class();
-			if RegisterClassExW(&class) == 0 {
+			if unsafe {RegisterClassExW(&class) == 0} {
 				Err(ErrorCode::last())
 			}
 			else {
 				Ok(())
 			}
-		}
+		
 	}
 
 	fn create() -> Result<Window> {
-		unsafe {
+		
 			let class = Self::class();
-			let hwnd = CreateWindowExW(
+			let hwnd = unsafe {CreateWindowExW(
 				0,
 				class.lpszClassName,
 				&WINDOW_TITLE as *const u16,
@@ -61,14 +61,14 @@ pub trait WndClass {
 				ptr::null_mut(),
 				class.hInstance,
 				ptr::null_mut()
-			);
+			)};
 			if hwnd.is_null() {
 				Err(ErrorCode::last())
 			}
 			else {
-				Ok(Window::from_inner(hwnd))
+				Ok(unsafe {Window::from_inner(hwnd)})
 			}
-		}
+		
 	}
 
 	fn wnd_proc(msg: &mut Message);

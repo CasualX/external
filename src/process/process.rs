@@ -52,30 +52,30 @@ impl Process {
 	}
 	/// Get the exit code for the process, `None` if the process is still running.
 	pub fn exit_code(&self) -> Result<Option<DWORD>> {
-		unsafe {
+		
 			let mut code = mem::MaybeUninit::<DWORD>::uninit();
-			if GetExitCodeProcess(self.0, code.as_mut_ptr()) != FALSE {
-				let code = code.assume_init();
+			if unsafe {GetExitCodeProcess(self.0, code.as_mut_ptr())} != FALSE {
+				let code = unsafe {code.assume_init()};
 				Ok(if code == 259/*STILL_ACTIVE*/ { None } else { Some(code) })
 			}
 			else {
 				Err(ErrorCode::last())
 			}
-		}
+		
 	}
 	/// Wait for the process to finish.
 	///
 	/// See [WaitForSingleObject](https://msdn.microsoft.com/en-us/library/windows/desktop/ms687032.aspx) for more information.
 	pub fn wait(&self, milis: DWORD) -> Result<DWORD> {
-		unsafe {
-			let result = WaitForSingleObject(self.0, milis);
+		
+			let result = unsafe  {WaitForSingleObject(self.0, milis)};
 			if result == WAIT_FAILED {
 				Err(ErrorCode::last())
 			}
 			else {
 				Ok(result)
 			}
-		}
+		
 	}
 	pub fn create_thread(&self, start_address: usize, parameter: usize) -> Result<Thread> {
 		unsafe {
