@@ -1,6 +1,6 @@
 use std::{mem, ptr};
 use std::ffi::OsString;
-use std::os::windows::ffi::{OsStringExt};
+use std::os::windows::ffi::OsStringExt;
 use intptr::IntPtr;
 use crate::winapi::*;
 use crate::process::{ProcessId, ProcessRights};

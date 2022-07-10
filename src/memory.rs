@@ -144,3 +144,92 @@ impl fmt::Debug for WorkingSetExBlock {
 			.finish()
 	}
 }
+
+pub struct PrivateMemory {
+	ptr: *mut [u8],
+}
+impl PrivateMemory {
+	#[inline]
+	pub fn len(&self) -> usize {
+		unsafe { (*self.ptr).len() }
+	}
+	#[inline]
+	pub fn as_ptr(&self) -> *const u8 {
+		self.ptr as _
+	}
+	#[inline]
+	pub fn as_mut_ptr(&self) -> *mut u8 {
+		self.ptr as _
+	}
+	#[inline]
+	pub fn as_data_view(&self) -> &dataview::DataView {
+		self.as_ref().as_data_view()
+	}
+	#[inline]
+	pub fn as_data_view_mut(&mut self) -> &mut dataview::DataView {
+		self.as_mut().as_data_view_mut()
+	}
+}
+impl AsRef<[u8]> for PrivateMemory {
+	#[inline]
+	fn as_ref(&self) -> &[u8] {
+		unsafe { &*self.ptr }
+	}
+}
+impl AsMut<[u8]> for PrivateMemory {
+	#[inline]
+	fn as_mut(&mut self) -> &mut [u8] {
+		unsafe { &mut *self.ptr }
+	}
+}
+impl Drop for PrivateMemory {
+	#[inline]
+	fn drop(&mut self) {
+		unsafe {
+			// Pass through &mut ...
+			let address = self.ptr as LPVOID;
+			let size = (*self.ptr).len() as SIZE_T;
+			let _result = VirtualFree(address, size, MEM_FREE);
+			debug_assert!(_result != FALSE, "VirtualFree({:?}, {:#x}, MEM_FREE) error: {}", address, size, GetLastError());
+		}
+	}
+}
+impl PrivateMemory {
+	/// Allocates private virtual memory.
+	#[inline]
+	pub fn new(len: usize, protect: Protect) -> Result<PrivateMemory> {
+		let ptr = unsafe { VirtualAlloc(ptr::null_mut(), len as SIZE_T, MEM_COMMIT, protect.0) };
+		if ptr.is_null() {
+			Err(ErrorCode::last())
+		}
+		else {
+			let ptr = ptr::slice_from_raw_parts_mut(ptr as *mut u8, len);
+			Ok(PrivateMemory { ptr })
+		}
+	}
+	#[inline]
+	pub fn protect(&self, offset: usize, len: usize, protect: Protect) -> Result<Protect> {
+		unsafe {
+			let mut old_protect = mem::MaybeUninit::<DWORD>::uninit();
+			let address = (self.ptr as *mut u8).wrapping_offset(offset as isize);
+			if VirtualProtect(address as LPVOID, len as SIZE_T, protect.0, old_protect.as_mut_ptr()) != FALSE {
+				Err(ErrorCode::last())
+			}
+			else {
+				Ok(Protect(old_protect.assume_init()))
+			}
+		}
+	}
+}
+
+//----------------------------------------------------------------
+
+// impl PrivateMemory {
+// 	#[cfg(target_arch = "x86_64")]
+// 	pub fn execute(&self, ctx: &mut ExecutionContext) {
+// 		unimplemented!()
+// 	}
+// }
+
+// #[cfg(target_arch = "x86_64")]
+// pub use crate::memory_x86_64::*;

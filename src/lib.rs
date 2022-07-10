@@ -32,6 +32,8 @@ pub mod wndclass;
 pub mod hook;
 pub mod vk;
 pub mod memory;
+// #[cfg(target_arch = "x86_64")]
+// mod memory_x86_64;
 pub mod mouse;
 pub mod control;
 pub mod snap;

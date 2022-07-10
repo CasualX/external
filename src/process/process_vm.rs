@@ -1,4 +1,4 @@
-use std::{ops, ptr, mem};
+use std::{iter, mem, ops, ptr};
 use dataview::Pod;
 use intptr::IntPtr;
 use crate::winapi::*;
@@ -264,30 +264,29 @@ impl Process {
 	#[inline]
 	pub fn vm_regions(&self, start_address: IntPtr) -> impl '_ + Clone + Iterator<Item = MemoryInformation> {
 		let mut start_address = start_address;
-		std::iter::from_fn(move || {
+		iter::from_fn(move || {
 			let mi = self.vm_query(start_address).ok()?;
 			start_address = IntPtr::from_usize((mi.BaseAddress as usize).wrapping_add(mi.RegionSize));
 			Some(mi)
 		})
 	}
 	/// Iterator returning all unique allocation bases from vm_query.
+	#[inline]
 	pub fn vm_allocations(&self) -> impl '_ + Clone + Iterator<Item = (IntPtr, Protect, MemoryType)> {
 		let mut allocation_base = ptr::null_mut();
 		let mut address = IntPtr::NULL;
-		std::iter::from_fn(move || {
-			let allocation_protect;
-			let memory_type;
+		iter::from_fn(move || {
 			loop {
 				let mi = self.vm_query(address).ok()?;
 				if mi.AllocationBase != ptr::null_mut() && mi.AllocationBase != allocation_base {
 					allocation_base = mi.AllocationBase;
-					allocation_protect = unsafe { Protect::from_inner(mi.AllocationProtect) };
-					memory_type = unsafe { MemoryType::from_inner(mi.Type) };
-					break;
+					let allocation_base = IntPtr::from_usize(allocation_base as usize);
+					let allocation_protect = unsafe { Protect::from_inner(mi.AllocationProtect) };
+					let memory_type = unsafe { MemoryType::from_inner(mi.Type) };
+					return Some((allocation_base, allocation_protect, memory_type));
 				}
 				address = IntPtr::from_usize((mi.BaseAddress as usize).wrapping_add(mi.RegionSize));
 			}
-			Some((IntPtr::from_usize(allocation_base as usize), allocation_protect, memory_type))
 		})
 	}
 }
