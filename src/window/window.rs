@@ -1,4 +1,4 @@
-use std::{mem, ptr};
+use std::{mem, ptr, slice};
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
 use crate::winapi::*;
@@ -45,14 +45,22 @@ impl Window {
 	pub fn class(self) -> Result<OsString> {
 		unsafe {
 			// 260 ought to be enough for everyone.
-			let mut buf: [WCHAR; 260] = mem::uninitialized();
-			let len = RealGetWindowClassW(self.into_inner(), buf.as_mut_ptr(), 260);
+			let mut buf = mem::MaybeUninit::<[WCHAR; 260]>::uninit();
+			let ptr = buf.as_mut_ptr() as *mut WCHAR;
+			let len = RealGetWindowClassW(self.into_inner(), ptr, 260);
 			if len == 0 {
 				Err(ErrorCode::last())
 			}
 			else {
-				Ok(OsString::from_wide(&buf[..len as usize]))
+				Ok(OsString::from_wide(slice::from_raw_parts(ptr, len as usize)))
 			}
+		}
+	}
+	pub fn class_wide<'a>(self, class_name: &'a mut [u16]) -> Result<&'a [u16]> {
+		unsafe {
+			let len = RealGetWindowClassW(self.into_inner(), class_name.as_mut_ptr(), class_name.len() as u32);
+			if len == 0 { Err(ErrorCode::last()) }
+			else { Ok(&class_name[..len as usize]) }
 		}
 	}
 	pub fn show(self, cmd: i32) {
@@ -98,13 +106,14 @@ impl Window {
 	pub fn title(self) -> Result<OsString> {
 		unsafe {
 			// 260 ought to be enough for everyone.
-			let mut buf: [WCHAR; 260] = mem::uninitialized();
-			let len = GetWindowTextW(self.into_inner(), buf.as_mut_ptr(), 260);
+			let mut buf = mem::MaybeUninit::<[WCHAR; 260]>::uninit();
+			let ptr = buf.as_mut_ptr() as *mut WCHAR;
+			let len = GetWindowTextW(self.into_inner(), ptr, 260);
 			if len <= 0 {
 				Err(ErrorCode::last())
 			}
 			else {
-				Ok(OsString::from_wide(&buf[..len as usize]))
+				Ok(OsString::from_wide(slice::from_raw_parts(ptr, len as usize)))
 			}
 		}
 	}

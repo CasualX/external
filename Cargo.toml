@@ -13,6 +13,9 @@ ntapi = "0.3"
 version = "0.1"
 default-features = false
 
+[dependencies.intptr]
+version = "0.1.6"
+
 [dependencies.winapi]
 version = "0.3.6"
 features = [

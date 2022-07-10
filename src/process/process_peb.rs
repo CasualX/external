@@ -24,11 +24,11 @@ impl ProcessEnvironmentBlock {
 
 		#[cfg(target_pointer_width = "32")]
 		#[cfg(feature = "nightly")]
-		unsafe { asm!("mov $0, dword ptr fs:0x30" : "=r"(peb) : : : "intel"); }
+		unsafe { llvm_asm!("mov $0, dword ptr fs:0x30" : "=r"(peb) : : : "intel"); }
 
 		#[cfg(target_pointer_width = "64")]
 		#[cfg(feature = "nightly")]
-		unsafe { asm!("mov $0, qword ptr gs:0x60" : "=r"(peb) : : : "intel"); }
+		unsafe { llvm_asm!("mov $0, qword ptr gs:0x60" : "=r"(peb) : : : "intel"); }
 
 		ProcessEnvironmentBlock(peb)
 	}
