@@ -1,4 +1,4 @@
-use std::{mem};
+use std::mem;
 use crate::winapi::*;
 use crate::process::ProcessId;
 use crate::thread::{ThreadId, ThreadRights};
@@ -69,6 +69,29 @@ impl Thread {
 				Err(ErrorCode::last())
 			}
 			else {
+				Ok(result)
+			}
+		}
+	}
+    /// Suspends the thread by increasing its suspend count by one.
+	pub fn suspend(&self) -> Result<DWORD> {
+		unsafe {
+			let result = SuspendThread(self.0);
+			if result == u32::MAX {
+				Err(ErrorCode::last())
+			} else {
+				Ok(result)
+			}
+		}
+	}
+	/// Decrements the threads suspend count.
+	/// When the suspend count is decremented to zero, the execution of the thread is resumed.
+	pub fn resume(&self) -> Result<DWORD> {
+		unsafe {
+			let result = ResumeThread(self.0);
+			if result == u32::MAX {
+				Err(ErrorCode::last())
+			} else {
 				Ok(result)
 			}
 		}
