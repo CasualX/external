@@ -17,9 +17,8 @@ impl Thread {
 		Thread(unsafe { GetCurrentThread() })
 	}
 	/// Attach to a thread by id and given rights.
-	pub fn attach(tid: ThreadId, access: ThreadRights) -> Result<Thread> {
-		// FIXME! What about handle inheritance?
-		let handle = unsafe { OpenThread(access.into_inner(), TRUE, tid.into_inner()) };
+	pub fn attach(tid: ThreadId, inherit: bool, access: ThreadRights) -> Result<Thread> {
+		let handle = unsafe { OpenThread(access.into_inner(), if inherit { TRUE } else { FALSE }, tid.into_inner()) };
 		if handle.is_null() {
 			Err(ErrorCode::last())
 		}
