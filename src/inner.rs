@@ -36,29 +36,42 @@ macro_rules! impl_inner {
 	($ty:path: safe $inner:ty) => {
 		impl_inner!($ty: $inner);
 		impl AsRef<$inner> for $ty {
+			#[inline]
 			fn as_ref(&self) -> &$inner { &self.0 }
 		}
 		impl AsMut<$inner> for $ty {
+			#[inline]
 			fn as_mut(&mut self) -> &mut $inner { &mut self.0 }
 		}
 		impl From<$ty> for $inner {
+			#[inline]
 			fn from(v: $ty) -> $inner { v.0 }
 		}
 		impl From<$inner> for $ty {
+			#[inline]
 			fn from(inner: $inner) -> $ty { $ty(inner) }
 		}
 	};
 	($ty:path: $inner:ty) => {
 		impl $crate::AsInner<$inner> for $ty {
+			#[inline]
 			fn as_inner(&self) -> &$inner { &self.0 }
 		}
 		impl $crate::AsInnerMut<$inner> for $ty {
+			#[inline]
 			unsafe fn as_inner_mut(&mut self) -> &mut $inner { &mut self.0 }
 		}
 		impl $crate::IntoInner<$inner> for $ty {
-			fn into_inner(self) -> $inner { self.0 }
+			#[inline]
+			fn into_inner(self) -> $inner {
+				let inner = self.0;
+				// Forget the container to prevent it from cleaning up the resource
+				std::mem::forget(self);
+				inner
+			}
 		}
 		impl $crate::FromInner<$inner> for $ty {
+			#[inline]
 			unsafe fn from_inner(inner: $inner) -> $ty { $ty(inner) }
 		}
 	}
