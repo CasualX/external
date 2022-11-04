@@ -28,7 +28,7 @@ impl Iterator for EnumThreads {
 	type Item = ThreadEntry;
 	fn next(&mut self) -> Option<ThreadEntry> {
 		unsafe {
-			let mut entry: ThreadEntry = mem::uninitialized();
+			let mut entry: ThreadEntry = mem::zeroed();
 			entry.0.dwSize = mem::size_of::<THREADENTRY32>() as DWORD;
 			let result = if self.1 {
 				Thread32Next(self.0, &mut entry.0)

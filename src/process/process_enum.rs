@@ -33,7 +33,7 @@ impl Iterator for EnumProcess {
 	type Item = ProcessEntry;
 	fn next(&mut self) -> Option<ProcessEntry> {
 		unsafe {
-			let mut entry: ProcessEntry = mem::uninitialized();
+			let mut entry: ProcessEntry = mem::zeroed();
 			entry.0.dwSize = mem::size_of::<PROCESSENTRY32W>() as DWORD;
 			let result = if self.next {
 				Process32NextW(self.handle, &mut entry.0)

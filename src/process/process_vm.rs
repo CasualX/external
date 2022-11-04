@@ -144,14 +144,14 @@ impl Process {
 	/// Writes the Pod `T` to the process.
 	#[inline]
 	pub fn vm_write<T: ?Sized + Pod>(&self, ptr: IntPtr<T>, val: &T) -> Result<()> {
-		self.vm_write_bytes(ptr.cast(), val.as_bytes())
+		self.vm_write_bytes(ptr.cast(), dataview::bytes(val))
 	}
 	/// Writes a sub range of the Pod `T` to the process.
 	/// Panics if the range falls outside the bytes of the given value.
 	#[inline]
 	pub fn vm_write_range<T: Pod>(&self, ptr: IntPtr<T>, val: &T, range: ops::Range<usize>) -> Result<()> {
 		let address = IntPtr::from_usize(ptr.into_usize() + range.start);
-		let val = &val.as_bytes()[range];
+		let val = &dataview::bytes(val)[range];
 		self.vm_write_bytes(address, val)
 	}
 	/// Allocates memomry in the process.

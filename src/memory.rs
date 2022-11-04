@@ -1,5 +1,4 @@
 use std::{fmt, ops, ptr, mem};
-use dataview::Pod;
 use crate::winapi::*;
 use crate::error::ErrorCode;
 use crate::Result;
@@ -163,11 +162,11 @@ impl PrivateMemory {
 	}
 	#[inline]
 	pub fn as_data_view(&self) -> &dataview::DataView {
-		self.as_ref().as_data_view()
+		dataview::DataView::from(self.as_ref())
 	}
 	#[inline]
 	pub fn as_data_view_mut(&mut self) -> &mut dataview::DataView {
-		self.as_mut().as_data_view_mut()
+		dataview::DataView::from_mut(self.as_mut())
 	}
 }
 impl AsRef<[u8]> for PrivateMemory {

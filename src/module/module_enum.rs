@@ -28,7 +28,7 @@ impl Iterator for EnumModules {
 	type Item = ModuleEntry;
 	fn next(&mut self) -> Option<ModuleEntry> {
 		unsafe {
-			let mut entry: ModuleEntry = mem::uninitialized();
+			let mut entry: ModuleEntry = mem::zeroed();
 			entry.0.dwSize = mem::size_of::<MODULEENTRY32W>() as DWORD;
 			let result = if self.1 {
 				Module32NextW(self.0, &mut entry.0)
