@@ -102,7 +102,7 @@ impl Process {
 	}
 	/// Get the full name of the executable for this process.
 	pub fn full_image_name(&self) -> Result<OsString> {
-		let mut buffer: [WCHAR; 0x400] = unsafe { mem::uninitialized() };
+		let mut buffer: [WCHAR; 0x400] = unsafe { mem::zeroed() };
 		self.full_image_name_wide(&mut buffer)
 			.map(|path| OsString::from_wide(path))
 	}
